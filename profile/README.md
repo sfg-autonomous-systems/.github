@@ -1,6 +1,6 @@
 # Smart Factory Grids - Autonomous Systems
 
-Welcome to the central GitHub organization for [**(Autonomous Systems)**](https://www.hs-esslingen.de/en/research/projects/smart-factory-grids-dfg-forschungsimpuls/research-units-and-research-topics/research-unit-2) within the [Smart Factory Grids (SFG) DFG project](https://www.hs-esslingen.de/en/research/projects/smart-factory-grids-dfg-forschungsimpuls).
+Welcome to the central GitHub organization for [**Autonomous Systems**](https://www.hs-esslingen.de/en/research/projects/smart-factory-grids-dfg-forschungsimpuls/research-units-and-research-topics/research-unit-2) within the [Smart Factory Grids (SFG) DFG project](https://www.hs-esslingen.de/en/research/projects/smart-factory-grids-dfg-forschungsimpuls).
 
 ## Organization Structure
 
@@ -20,9 +20,9 @@ This space is dedicated to student projects, experimental code, and early-stage 
 
 ## How to Contribute
 
-Before cloning repositories or pushing code, you must read our core documentation. We maintain central onboarding guides, coding standards, and more to streamline your setup. Please thoroughly review our [Contributing Guidelines](../CONTRIBUTING.md) to understand our development workflows, git submodule policies, and required VS Code tooling before beginning your work.
+Please thoroughly review our [Contributing Guidelines](../CONTRIBUTING.md) to understand our development workflows, git submodule policies, and required VS Code tooling before contributing.
 
-*Note for Lab Members: Internal infrastructure documentation (Wi-Fi, NAS access, Proxmox administration) is hosted separately [here](../sfg_docs).*
+*Note for Lab Members: Internal infrastructure documentation is hosted separately [here](https://github.com/sfg-autonomous-systems/sfg_docs).*
 
 ## Publications
 
@@ -36,4 +36,4 @@ Our research is conducted at the **Institute for Intelligent Systems (IIS)** at 
 * [IIS GitHub Organization](https://github.com/iis-esslingen)
 
 ## Funding
-Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - Projectnumber 528745080 (FIP 68).
+Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - [Projectnumber 528745080](https://gepris.dfg.de/project/528745080) (FIP 68).
