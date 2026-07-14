@@ -16,7 +16,7 @@ This organization is strictly for hardware and platform integration. It houses t
 
 ### 3. [sfg-autonomous-systems-sandbox](https://github.com/sfg-autonomous-systems-sandbox)
 
-This space is dedicated to student projects, experimental code, and early-stage research, allowing us to keep exploratory work entirely separate from our main releases. Successful prototypes from this sandbox are eventually graduated to the main organization once they meet our standards.
+This space is dedicated to student projects, experimental code, and early-stage research. Successful prototypes from this sandbox are eventually graduated to the main organization once they meet our standards.
 
 ## How to Contribute
 
@@ -30,7 +30,7 @@ Please thoroughly review our [Contributing Guidelines](../CONTRIBUTING.md) to un
 
 ## Affiliations
 
-Our research is conducted at the **Institute for Intelligent Systems (IIS)** at the Esslingen University of Applied Sciences.
+Our research is conducted at the **Institute for Intelligent Systems (IIS)** at the [Esslingen University of Applied Sciences](https://www.hs-esslingen.de/en/).
 
 * [Institute for Intelligent Systems (IIS) Website](https://www.hs-esslingen.de/iis)
 * [IIS GitHub Organization](https://github.com/iis-esslingen)
