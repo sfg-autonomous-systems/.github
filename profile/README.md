@@ -12,7 +12,7 @@ This is our primary organization for publication-ready research and shared infra
 
 ### 2. [sfg-autonomous-systems-agents](https://github.com/sfg-autonomous-systems-agents)
 
-This organization is strictly for hardware and platform integration. It houses the specialized software stacks, sensor drivers, and deployment configurations specific to our individual agents. In the case of **[SFG-ROS](https://iis-esslingen.github.io/sfg-ros/)**, you will find our reference agent implementations here (e.g. [`sfg_go2`](https://github.com/sfg-autonomous-systems-agents/sfg_go2.git)).
+This organization is strictly for hardware and platform integration. It houses the specialized software stacks, sensor drivers, and deployment configurations specific to our individual agents. In the case of **[SFG-ROS](https://iis-esslingen.github.io/sfg-ros/)**, you will find our reference agent implementations there (e.g. [`sfg_go2`](https://github.com/sfg-autonomous-systems-agents/sfg_go2.git)).
 
 ### 3. [sfg-autonomous-systems-sandbox](https://github.com/sfg-autonomous-systems-sandbox)
 
