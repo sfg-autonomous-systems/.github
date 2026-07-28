@@ -4,15 +4,15 @@ Welcome to the central GitHub organization for [**Autonomous Systems**](https://
 
 ## Organization Structure
 
-To maintain a clean separation between published research, hardware-specific deployments, and exploratory student work, our codebase is divided across three GitHub organizations:
+To maintain a clean separation between published research, exploratory student work, and internal lab management, our codebase is divided across three GitHub organizations:
 
 ### 1. [sfg-autonomous-systems](https://github.com/sfg-autonomous-systems)
 
-This is our primary organization for publication-ready research and shared infrastructure. It hosts the official repositories that accompany our published papers, alongside our hardware-agnostic core frameworks, multi-agent coordination tools, and shared deployment pipelines (e.g. [`sfg_agent_common`](https://github.com/sfg-autonomous-systems/sfg_agent_common) or [`sfg_agent_devcontainer`](https://github.com/sfg-autonomous-systems/sfg_agent_devcontainer)).
+This is our primary organization for publication-ready research, hardware-specific deployments, and shared infrastructure. It hosts the official repositories that accompany our published papers, our hardware-agnostic core frameworks, and our reference agent implementations (e.g. [`sfg_agent_common`](https://github.com/sfg-autonomous-systems/sfg_agent_common) or [`sfg_go2`](https://github.com/sfg-autonomous-systems/sfg_go2)).
 
-### 2. [sfg-autonomous-systems-agents](https://github.com/sfg-autonomous-systems-agents)
+### 2. [sfg-autonomous-systems-admin](https://github.com/sfg-autonomous-systems-admin)
 
-This organization is strictly for hardware and platform integration. It houses the specialized software stacks, sensor drivers, and deployment configurations specific to our individual agents. In case of **[SFG-ROS](https://iis-esslingen.github.io/sfg-ros/)**, you will find our reference agent implementations there (e.g. [`sfg_go2`](https://github.com/sfg-autonomous-systems-agents/sfg_go2.git)).
+This organization is dedicated solely to administrative purposes. It contains primarily private repositories and is restricted to lab administrators. 
 
 ### 3. [sfg-autonomous-systems-sandbox](https://github.com/sfg-autonomous-systems-sandbox)
 
