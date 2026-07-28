@@ -12,7 +12,7 @@ This is our primary organization for publication-ready research, hardware-specif
 
 ### 2. [sfg-autonomous-systems-admin](https://github.com/sfg-autonomous-systems-admin)
 
-This organization is dedicated solely to administrative purposes. It contains primarily private repositories and is restricted to lab administrators. 
+This organization is dedicated solely to administrative purposes. It contains primarily private repositories and is restricted to administrators. 
 
 ### 3. [sfg-autonomous-systems-sandbox](https://github.com/sfg-autonomous-systems-sandbox)
 
