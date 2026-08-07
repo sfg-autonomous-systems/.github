@@ -8,7 +8,7 @@ To maintain a clean separation between published research, exploratory student w
 
 ### 1. [sfg-autonomous-systems](https://github.com/sfg-autonomous-systems)
 
-This is our primary organization for publication-ready research, hardware-specific deployments, and shared infrastructure. It hosts the official repositories that accompany our published papers, our hardware-agnostic core frameworks, and our reference agent implementations (e.g. [`sfg_agent_common`](https://github.com/sfg-autonomous-systems/sfg_agent_common) or [`sfg_go2`](https://github.com/sfg-autonomous-systems/sfg_go2)), as well as pre-compiled Debian packages for the aforementioned frameworks in our [**official APT repository**](https://sfg-autonomous-systems.github.io/sfg_apt_repo/).
+This is our primary organization for publication-ready research, hardware-specific deployments, and shared infrastructure. It hosts the official repositories that accompany our published papers, our hardware-agnostic core frameworks, and our reference agent implementations (e.g. [`sfg_agent_common`](https://github.com/sfg-autonomous-systems/sfg_agent_common) or [`sfg_go2`](https://github.com/sfg-autonomous-systems/sfg_go2)), as well as pre-compiled Debian packages for these projects in our [**official APT repository**](https://sfg-autonomous-systems.github.io/sfg_apt_repo/).
 
 ### 2. [sfg-autonomous-systems-admin](https://github.com/sfg-autonomous-systems-admin)
 
