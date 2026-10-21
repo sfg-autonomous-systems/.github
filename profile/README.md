@@ -4,19 +4,19 @@ Welcome to the central GitHub organization for [**Autonomous Systems**](https://
 
 ## Organization Structure
 
-To maintain a clean separation between published research, exploratory student work, and internal lab management, our codebase is divided across three GitHub organizations:
+All of our code lives in this organization. To keep published research, exploratory student work, and internal lab management cleanly separated, every repository is assigned one of three tiers:
 
-### 1. [sfg-autonomous-systems](https://github.com/sfg-autonomous-systems)
+### Stable (`props.tier:stable`)
 
-This is our primary organization for publication-ready research, hardware-specific deployments, and shared infrastructure. It hosts the official repositories that accompany our published papers, our hardware-agnostic core frameworks, and our reference agent implementations (e.g. [`sfg_agent_common`](https://github.com/sfg-autonomous-systems/sfg_agent_common) or [`sfg_go2`](https://github.com/sfg-autonomous-systems/sfg_go2)), as well as pre-compiled Debian packages for these projects in our [**official APT repository**](https://sfg-autonomous-systems.github.io/sfg_apt_repo/).
+Publication-ready research, hardware-specific deployments, and shared infrastructure. This includes the official repositories that accompany our published papers, our hardware-agnostic core frameworks, and our reference agent implementations (e.g. [`sfg_agent_common`](https://github.com/sfg-autonomous-systems/sfg_agent_common) or [`sfg_go2`](https://github.com/sfg-autonomous-systems/sfg_go2)), as well as pre-compiled Debian packages for these projects in our [**official APT repository**](https://sfg-autonomous-systems.github.io/sfg_apt_repo/). Changes to the main branches of stable repositories require a reviewed pull request.
 
-### 2. [sfg-autonomous-systems-admin](https://github.com/sfg-autonomous-systems-admin)
+### Sandbox (`props.tier:sandbox`)
 
-This organization is dedicated solely to administrative purposes. It contains primarily private repositories and is restricted to administrators. 
+Student projects, experimental code, and early-stage research. Sandbox repositories are usually private. Successful prototypes are promoted to stable once they meet our standards.
 
-### 3. [sfg-autonomous-systems-sandbox](https://github.com/sfg-autonomous-systems-sandbox)
+### Restricted (`props.tier:restricted`)
 
-This space is dedicated to student projects, experimental code, and early-stage research. Successful prototypes from this sandbox are eventually graduated to the main organization once they meet our standards.
+Internal administrative repositories, accessible to administrators only.
 
 ## How to Contribute
 
@@ -37,3 +37,4 @@ Our research is conducted at the **Institute for Intelligent Systems (IIS)** at 
 
 ## Funding
 Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - [Projectnumber 528745080](https://gepris.dfg.de/project/528745080) (FIP 68).
+
