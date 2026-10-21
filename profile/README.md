@@ -6,15 +6,15 @@ Welcome to the central GitHub organization for [**Autonomous Systems**](https://
 
 All of our code lives in this organization. To keep published research, exploratory student work, and internal lab management cleanly separated, every repository is assigned one of three tiers:
 
-### Stable (`props.tier:stable`)
+### Stable ([`props.tier:stable`](https://github.com/orgs/sfg-autonomous-systems/repositories?q=props.tier%3Astable))
 
 Publication-ready research, hardware-specific deployments, and shared infrastructure. This includes the official repositories that accompany our published papers, our hardware-agnostic core frameworks, and our reference agent implementations (e.g. [`sfg_agent_common`](https://github.com/sfg-autonomous-systems/sfg_agent_common) or [`sfg_go2`](https://github.com/sfg-autonomous-systems/sfg_go2)), as well as pre-compiled Debian packages for these projects in our [**official APT repository**](https://sfg-autonomous-systems.github.io/sfg_apt_repo/). Changes to the main branches of stable repositories require a reviewed pull request.
 
-### Sandbox (`props.tier:sandbox`)
+### Sandbox ([`props.tier:sandbox`](https://github.com/orgs/sfg-autonomous-systems/repositories?q=props.tier%3Asandbox))
 
 Student projects, experimental code, and early-stage research. Sandbox repositories are usually private. Successful prototypes are promoted to stable once they meet our standards.
 
-### Restricted (`props.tier:restricted`)
+### Restricted ([`props.tier:restricted`](https://github.com/orgs/sfg-autonomous-systems/repositories?q=props.tier%3Arestricted))
 
 Internal administrative repositories, accessible to administrators only.
 
@@ -37,4 +37,3 @@ Our research is conducted at the **Institute for Intelligent Systems (IIS)** at 
 
 ## Funding
 Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - [Projectnumber 528745080](https://gepris.dfg.de/project/528745080) (FIP 68).
-
