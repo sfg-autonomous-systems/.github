@@ -12,72 +12,67 @@ We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary I
 
 **For C++ and CMake:**
 
-| Extension ID | Name | Marketplace |
-|---|---|---|
-| `ms-vscode.cpptools-extension-pack` | C/C++ Extension Pack | [Link](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools-extension-pack) |
-| `jeff-hykin.better-cpp-syntax` | Better C++ Syntax | [Link](https://marketplace.visualstudio.com/items?itemName=jeff-hykin.better-cpp-syntax) |
-| `cschlosser.doxdocgen` | Doxygen Documentation Generator | [Link](https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen) |
+| Extension ID                           | Name                   | Marketplace                                                                                      |
+| -------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
 | `josetr.cmake-language-support-vscode` | CMake Language Support | [Link](https://marketplace.visualstudio.com/items?itemName=josetr.cmake-language-support-vscode) |
+| `ms-vscode.cpptools`                   | C/C++                  | [Link](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)                   |
 
 **For Python:**
 
-| Extension ID | Name | Marketplace |
-|---|---|---|
-| `ms-python.python` | Python | [Link](https://marketplace.visualstudio.com/items?itemName=ms-python.python) |
-| `charliermarsh.ruff` | Ruff | [Link](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) |
+| Extension ID                  | Name              | Marketplace                                                                             |
+| ----------------------------- | ----------------- | --------------------------------------------------------------------------------------- |
+| `charliermarsh.ruff`          | Ruff              | [Link](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff)          |
 | `ms-python.mypy-type-checker` | Mypy Type Checker | [Link](https://marketplace.visualstudio.com/items?itemName=ms-python.mypy-type-checker) |
-| `njpwerner.autodocstring` | autoDocstring - Python Docstring Generator | [Link](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) |
+| `ms-python.python`            | Python            | [Link](https://marketplace.visualstudio.com/items?itemName=ms-python.python)            |
+
+### Configuration Files
+
+The formatter, linter, and type checker configurations are maintained in [`config/`](config/). Copy the files that apply to your repository into its **root directory**, keeping their names:
+
+| File                                                  | Tool           | Purpose                       |
+| ----------------------------------------------------- | -------------- | ----------------------------- |
+| [`.clang-format`](config/.clang-format)               | `clang-format` | C++ formatting                |
+| [`ruff.toml`](config/ruff.toml)                       | `ruff`         | Python formatting and linting |
+| [`mypy.ini`](config/mypy.ini)                         | `mypy`         | Python type checking          |
+| [`requirements-dev.txt`](config/requirements-dev.txt) | `pip`          | Tool versions (see below)     |
+
+> [!warning]
+> Configure each tool in exactly one place. Do not additionally add `[tool.ruff]` or `[tool.mypy]` sections to a `pyproject.toml`: `ruff.toml` and `mypy.ini` take precedence and such sections are silently ignored.
+
+### Tool Versions
+
+- **New repositories:** copy [`config/requirements-dev.txt`](config/requirements-dev.txt) to the repository root and remove the lines for tools the repository does not use.
+- **Working on a repository:** install the pinned tools with `pip install -r requirements-dev.txt`.
 
 ### VS Code Workspace Settings
 
-Add the following to your project's `.vscode/settings.json`. This enables format-on-save across all languages, maps the correct formatters to each language, and links your local configuration files.
+Add the following to your project's `.vscode/settings.json`. This enables format-on-save across all languages, maps the correct formatters to each language, and makes the extensions use the tool versions from `requirements-dev.txt`.
 
 ```json
 {
     "editor.formatOnSave": true,
     // C++ settings.
-    "C_Cpp.clang_format_style": "file:${workspaceFolder}/.vscode/clang_format.yaml",
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
     },
-
     "[cmake]": {
         "editor.defaultFormatter": "josetr.cmake-language-support-vscode"
     },
-    "cmake.languageSupport.dotnetPath": "/usr/bin/",
     // Python settings.
     "python.languageServer": "Pylance",
-    "debugpy.debugJustMyCode": false,
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
+            "source.organizeImports.ruff": "explicit"
         }
     },
-    "mypy-type-checker.args": [
-        "--config-file=${workspaceFolder}/.vscode/mypy.ini"
-    ]
+    "ruff.importStrategy": "fromEnvironment",
+    "mypy-type-checker.importStrategy": "fromEnvironment",
+    "mypy-type-checker.cwd": "${fileDirname}"
 }
 ```
 
-### Clang-Format Configuration
-
-Our C++ formatting relies on the following configuration. This should be saved as `clang_format.yaml` inside your `.vscode` directory. 
-
-```yaml
-Language: Cpp
-BasedOnStyle: Microsoft
-IndentWidth: 4
-AccessModifierOffset: -4
-ColumnLimit: 0
-NamespaceIndentation: All
-BreakBeforeBraces: Allman
-AllowShortFunctionsOnASingleLine: false
-FixNamespaceComments: false
-IndentCaseLabels: true
-SortIncludes: CaseInsensitive
-InsertBraces: true
-```
+Additionally, set `C_Cpp.clang_format_path` to the absolute path of the `clang-format` installed from `requirements-dev.txt` (find it with `which clang-format`).
 
 ## C++ Guidelines
 

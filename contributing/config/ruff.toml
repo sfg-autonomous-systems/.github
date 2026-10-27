@@ -1,0 +1,11 @@
+# Only needed if the repository has no pyproject.toml with requires-python.
+# target-version = "py310"
+
+[lint]
+extend-select = [
+    "I002",  # Require the imports below (guidelines: `from __future__ import annotations`).
+    "N",     # pep8-naming (guidelines: naming conventions).
+]
+
+[lint.isort]
+required-imports = ["from __future__ import annotations"]
