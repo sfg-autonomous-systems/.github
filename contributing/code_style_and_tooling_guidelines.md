@@ -2,7 +2,7 @@
 
 This document outlines the required tooling, editor configuration, and semantic coding standards for our C++, Python, and CMake development.
 
-> **Note on Formatting:** Aesthetic formatting (indentation, line length, braces, quotes, auto-sorting of imports) is strictly enforced via `clang-format` and `ruff`. This guide focuses on configuring your editor to handle this automatically, followed by code semantics, naming conventions, and language idioms. Technical design choices (e.g. memory management, rule of 5, smart pointers) are outside the scope of this style guide.
+> **Note on Formatting:** Aesthetic formatting (indentation, line length, braces, quotes, auto-sorting of imports) is enforced via `clang-format` and `ruff`. This guide focuses on configuring your editor to handle this automatically, followed by code semantics, naming conventions, and language idioms. Technical design choices (e.g. memory management, rule of 5, smart pointers) are outside the scope of this style guide.
 
 ## Tooling & Editor Configuration
 
