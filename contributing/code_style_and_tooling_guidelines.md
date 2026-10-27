@@ -66,9 +66,9 @@ Add the following to your project's `.vscode/settings.json`. This enables format
             "source.organizeImports.ruff": "explicit"
         }
     },
-    "ruff.importStrategy": "fromEnvironment",
     "mypy-type-checker.importStrategy": "fromEnvironment",
-    "mypy-type-checker.cwd": "${fileDirname}"
+    "mypy-type-checker.cwd": "${nearestConfig}",
+    "mypy-type-checker.showNotifications": "onError"
 }
 ```
 
