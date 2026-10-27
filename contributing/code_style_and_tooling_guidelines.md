@@ -4,7 +4,7 @@ This document outlines the required tooling, editor configuration, and semantic 
 
 > **Note on Formatting:** Aesthetic formatting (indentation, line length, braces, quotes, auto-sorting of imports) is strictly enforced via `clang-format` and `ruff`. This guide focuses on configuring your editor to handle this automatically, followed by code semantics, naming conventions, and language idioms. Technical design choices (e.g. memory management, rule of 5, smart pointers) are outside the scope of this style guide.
 
-## 1. Tooling & Editor Configuration
+## Tooling & Editor Configuration
 
 We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary IDE. To ensure everyone's code is formatted identically and automatically upon saving, you must install the required extensions and apply the workspace settings below.
 
