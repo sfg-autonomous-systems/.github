@@ -9,7 +9,7 @@ We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary I
 ### Tool Versions
 
 - **New repositories:** copy [`config/requirements-dev.txt`](config/requirements-dev.txt) to the repository root and uncomment the tools listed in the [language guidelines](#language-guidelines) for each language the repository uses.
-- **Working on a repository:** install the pinned tools with `pip install -r requirements-dev.txt`.
+- **Working on a repository:** install the pinned tools with `pip install -r requirements-dev.txt` and ensure they are on the `PATH` that VS Code starts with.
 
 ### VS Code Workspace Settings
 

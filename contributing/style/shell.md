@@ -41,8 +41,6 @@ Merge the following into your project's `.vscode/settings.json`. Bash IDE takes 
 }
 ```
 
-Additionally, set `bashIde.shfmt.path` and `bashIde.shellcheckPath` to the absolute paths of the `shfmt` and `shellcheck` installed from `requirements-dev.txt`.
-
 ## General
 
 - Write scripts in Bash. Do not write POSIX `sh` scripts.

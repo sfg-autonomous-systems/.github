@@ -36,8 +36,6 @@ Merge the following into your project's `.vscode/settings.json`:
 }
 ```
 
-Additionally, set `C_Cpp.clang_format_path` to the absolute path of the `clang-format` installed from `requirements-dev.txt`.
-
 ## C++
 
 ### Header Management
