@@ -26,4 +26,5 @@ Add the following to your project's `.vscode/settings.json` to enable format-on-
 Language-specific guidelines:
 
 - [C++](style/cpp.md)
+- [Shell](style/shell.md)
 - [Python](style/python.md)
