@@ -1,0 +1,122 @@
+name: Build and Submit Package(s)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build_and_submit_packages.yaml
+      - contributing/config/**
+      - scripts/build_contribution_tooling_package
+      - src/sfg-contribution-tooling/**
+  pull_request:
+    paths:
+      - .github/workflows/build_and_submit_packages.yaml
+      - contributing/config/**
+      - scripts/build_contribution_tooling_package
+      - src/sfg-contribution-tooling/**
+  workflow_dispatch:
+
+# Do not cancel an in-progress run, as it may be submitting packages.
+concurrency:
+  group: build-and-submit-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    # Build natively, as pip only builds the shellcheck-py sdist for the architecture it runs on.
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Build Package
+        run: scripts/build_contribution_tooling_package --output-directory "dist"
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v7
+        with:
+          name: sfg-contribution-tooling-${{ matrix.architecture }}
+          path: dist/*.deb
+          if-no-files-found: error
+
+  test:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [amd64, arm64]
+        image: ["ubuntu:22.04", "ubuntu:24.04"]
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.image }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Download Package
+        uses: actions/download-artifact@v8
+        with:
+          name: sfg-contribution-tooling-${{ matrix.architecture }}
+
+      # Installing from a file still resolves the dependencies from the Ubuntu archive.
+      - name: Install Package
+        run: apt-get update && apt-get install -y ./*.deb
+
+      - name: Run Tools
+        run: |
+          for tool in "/opt/sfg-contribution-tooling/bin/"*; do
+            echo "Running '${tool} --version'."
+            "${tool}" --version
+          done
+
+  submit:
+    needs: test
+    # The APT repository only accepts packages built on a protected branch.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+
+    steps:
+      # The submit action expects all packages at the root of a single artifact.
+      - name: Merge Packages
+        uses: actions/upload-artifact/merge@v7
+        with:
+          name: sfg-contribution-tooling
+          pattern: sfg-contribution-tooling-*
+
+      # The binaries do not depend on the Ubuntu release, so every distribution gets the same packages.
+      - name: Submit Package(s) for Jammy
+        uses: sfg-autonomous-systems/sfg_apt_repo/.github/actions/submit_packages@main
+        with:
+          submitter_app_client_id: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_CLIENT_ID }}
+          submitter_app_private_key: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_PRIVATE_KEY }}
+          distribution: jammy
+          artifact_name: sfg-contribution-tooling
+
+      - name: Submit Package(s) for Noble
+        uses: sfg-autonomous-systems/sfg_apt_repo/.github/actions/submit_packages@main
+        with:
+          submitter_app_client_id: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_CLIENT_ID }}
+          submitter_app_private_key: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_PRIVATE_KEY }}
+          distribution: noble
+          artifact_name: sfg-contribution-tooling
