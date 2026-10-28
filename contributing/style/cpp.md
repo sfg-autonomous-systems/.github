@@ -1,6 +1,6 @@
 # C++
 
-Editor setup and semantic coding standards for C++ and CMake. Formatting is handled by `clang-format`; see [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
+Editor setup and semantic coding standards for C++ and CMake. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
 ## Tooling
 
@@ -43,7 +43,6 @@ Additionally, set `C_Cpp.clang_format_path` to the absolute path of the `clang-f
 ### Header Management
 
 - Use `#pragma once` at the top of all header files instead of traditional include guards.
-- `#include` directives are automatically sorted by our formatters, so the order is enforced.
 - Use **quotes (`" "`)** for our own workspace and local project headers.
 - Use **angle brackets (`< >`)** for system standard libraries and third-party dependencies.
 

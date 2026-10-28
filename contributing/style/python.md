@@ -1,6 +1,6 @@
 # Python
 
-Editor setup and semantic coding standards for Python. Formatting and linting are handled by `ruff`, type checking by `mypy`; see [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
+Editor setup and semantic coding standards for Python. Formatting and linting are handled by `ruff`, type checking by `mypy`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
 ## Tooling
 
@@ -47,21 +47,17 @@ Merge the following into your project's `.vscode/settings.json`. This makes the 
 
 ## Typing
 
-- **Rule:** Enforce strict type hinting on all function signatures and class-level attributes.
-- **Rule:** Use modern standard syntax (`list[str]`, `str | None`). Import `annotations` from `__future__` at the top of the file to support cleaner forward referencing.
+- **Rule:** Add type hints to all class-level attributes.
 
 ### Example
 
 ```python
-from __future__ import annotations
-
-def get_active_agents(config: dict[str, str | None]) -> list[str]:
-    pass
+class AgentRegistry:
+    max_agents: int = 10
 ```
 
 ## Naming Conventions
 
-- **Classes:** Use `PascalCase`.
-- **Modules, Functions, and Public Variables:** Use `snake_case`.
+- **Modules:** Use `snake_case`.
 - **Internal/Private Variables and Methods:** Use `snake_case` prefixed with a single underscore `_` to denote that they are class internals.
 - **Global Constants:** Use `UPPER_SNAKE_CASE`.

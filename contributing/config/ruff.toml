@@ -3,8 +3,11 @@
 
 [lint]
 extend-select = [
-    "I002",  # Require the imports below (guidelines: `from __future__ import annotations`).
-    "N",     # pep8-naming (guidelines: naming conventions).
+    "I002",  # Require the imports below.
+    "N",     # Enforce pep8-naming.
+    "UP006", # Enforce `list[str]` instead of `List[str]`.
+    "UP007", # Enforce `X | Y` instead of `Union[X, Y]`.
+    "UP045", # Enforce `X | None` instead of `Optional[X]`.
 ]
 
 [lint.isort]
