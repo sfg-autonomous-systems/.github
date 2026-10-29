@@ -1,7 +1,0 @@
-# Tool versions packaged in sfg-contribution-tooling. After changing a pin, bump the version in
-# src/sfg-contribution-tooling/DEBIAN/control.
-clang-format==23.1.0
-ruff==0.17.2
-shellcheck-py==0.11.0.1
-shfmt-py==4.2.0
-ty==0.0.94
