@@ -136,7 +136,7 @@ def main() -> None:
         "--output-directory",
         type=Path,
         default=Path(),
-        help="The directory to write the package to.",
+        help="directory to write the package to",
     )
     args = parser.parse_args()
 
