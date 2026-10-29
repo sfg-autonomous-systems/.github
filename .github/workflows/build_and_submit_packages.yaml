@@ -1,0 +1,161 @@
+name: Build and Submit Package(s)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/sfg-contribution-tooling/DEBIAN/control
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/build_and_submit_packages.yaml
+      - contributing/config/**
+      - scripts/build_contribution_tooling_package
+      - src/sfg-contribution-tooling/**
+  workflow_dispatch:
+
+# Do not cancel an in-progress run, as it may be submitting packages.
+concurrency:
+  group: build-and-submit-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check-version:
+    name: Check Package Version
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Compare Versions
+        id: version
+        env:
+          BASE_SHA: ${{ github.event.before }}
+        run: |
+          control_file="src/sfg-contribution-tooling/DEBIAN/control"
+          current_version="$(sed -n 's/^Version: //p' "${control_file}")"
+          base_version="$(git show "${BASE_SHA}:${control_file}" 2>/dev/null | sed -n 's/^Version: //p' || true)"
+          if [[ "${current_version}" == "${base_version}" ]]; then
+            echo "Version ${current_version} has not changed."
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+  build:
+    name: Build Package for ${{ matrix.architecture }}
+    strategy:
+      matrix:
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    # Build natively, as pip only builds the shellcheck-py sdist for the architecture it runs on.
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Build Package
+        run: scripts/build_contribution_tooling_package --output-directory "dist"
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v7
+        with:
+          name: sfg-contribution-tooling-${{ matrix.architecture }}
+          path: dist/*.deb
+          if-no-files-found: error
+
+  test:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture:
+          - amd64
+          - arm64
+        image:
+          - ubuntu:22.04
+          - ubuntu:24.04
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.image }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Download Package
+        uses: actions/download-artifact@v8
+        with:
+          name: sfg-contribution-tooling-${{ matrix.architecture }}
+
+      # Installing from a file still resolves the dependencies from the Ubuntu archive.
+      - name: Install Package
+        run: apt-get update && apt-get install -y ./*.deb
+
+      - name: Run Tools
+        run: |
+          for tool in "/opt/sfg-contribution-tooling/bin/"*; do
+            echo "Running '${tool} --version'."
+            "${tool}" --version
+          done
+
+  merge:
+    name: Merge Packages
+    needs:
+      - check-version
+      - test
+    if: needs.check-version.outputs.changed == 'true'
+    runs-on: ubuntu-24.04
+
+    steps:
+      # The submit action expects all packages at the root of a single artifact.
+      - name: Merge Packages
+        uses: actions/upload-artifact/merge@v7
+        with:
+          name: sfg-contribution-tooling
+          pattern: sfg-contribution-tooling-*
+
+  submit:
+    name: Submit Packages for ${{ matrix.distribution }}
+    needs: merge
+    strategy:
+      fail-fast: false
+      matrix:
+        # The binaries do not depend on the Ubuntu release, so every distribution gets the same packages.
+        distribution:
+          - jammy
+          - noble
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Submit Packages
+        uses: sfg-autonomous-systems/sfg_apt_repo/.github/actions/submit_packages@main
+        with:
+          submitter_app_client_id: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_CLIENT_ID }}
+          submitter_app_private_key: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_PRIVATE_KEY }}
+          distribution: ${{ matrix.distribution }}
+          artifact_name: sfg-contribution-tooling

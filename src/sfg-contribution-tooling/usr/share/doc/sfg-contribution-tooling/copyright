@@ -1,0 +1,30 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: sfg-contribution-tooling
+Source: https://github.com/sfg-autonomous-systems/.github
+Comment: The binaries are extracted unmodified from the wheels pinned in
+ /opt/sfg-contribution-tooling/share/config/requirements-dev.txt. The license
+ files shipped in those wheels are installed next to this file.
+
+Files: opt/sfg-contribution-tooling/bin/clang-format
+Copyright: LLVM Project contributors
+License: Apache-2.0 WITH LLVM-exception
+Comment: Source: https://github.com/llvm/llvm-project
+ The full Apache 2.0 license text is in /usr/share/common-licenses/Apache-2.0.
+
+Files: opt/sfg-contribution-tooling/bin/ruff
+ opt/sfg-contribution-tooling/bin/ty
+Copyright: Astral Software Inc.
+License: MIT
+Comment: Source: https://github.com/astral-sh/ruff and https://github.com/astral-sh/ty
+
+Files: opt/sfg-contribution-tooling/bin/shellcheck
+Copyright: Vidar Holen and contributors
+License: GPL-3.0-or-later
+Comment: Source: https://github.com/koalaman/shellcheck, the release tagged
+ with the version that shellcheck --version prints.
+ The full license text is in /usr/share/common-licenses/GPL-3.
+
+Files: opt/sfg-contribution-tooling/bin/shfmt
+Copyright: Daniel Martí and contributors
+License: BSD-3-Clause
+Comment: Source: https://github.com/mvdan/sh

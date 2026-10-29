@@ -1,0 +1,6 @@
+# Uncomment the tools listed in the language guidelines for each language the repository uses.
+# clang-format==23.1.0
+# ruff==0.17.2
+# shellcheck-py==0.11.0.1
+# shfmt-py==4.2.0
+# ty==0.0.94

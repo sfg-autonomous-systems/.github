@@ -1,0 +1,11 @@
+root = true
+
+# Read by shfmt; matches shell scripts with or without file extension.
+[[shell]]
+indent_style = space
+indent_size = 4
+
+# Bash IDE skips [[shell]] and takes the indent from VS Code; it reads these keys. Only shfmt uses them.
+[*]
+binary_next_line = true
+switch_case_indent = true

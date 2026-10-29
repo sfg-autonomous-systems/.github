@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""Build the sfg-contribution-tooling Debian package from the tools pinned in requirements-dev.txt."""
+
+from __future__ import annotations
+
+import argparse
+import fnmatch
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import zipfile
+from dataclasses import dataclass
+from pathlib import Path
+
+package_name = "sfg-contribution-tooling"
+repository_root = Path(__file__).resolve().parent.parent
+package_source = repository_root / "src" / package_name
+config_directory = repository_root / "contributing" / "config"
+requirements_file = config_directory / "requirements-dev.txt"
+install_prefix = Path("opt") / package_name
+doc_directory = Path("usr") / "share" / "doc" / package_name
+
+# The binary each packaged wheel ships, as a glob within the wheel. Pins of other packages are
+# ignored.
+binary_in_wheel = {
+    "clang-format": "clang_format/data/bin/clang-format",
+    "ruff": "ruff-*.data/scripts/ruff",
+    "shellcheck-py": "shellcheck_py-*.data/scripts/shellcheck",
+    "shfmt-py": "shfmt_py-*.data/scripts/shfmt",
+    "ty": "ty-*.data/scripts/ty",
+}
+# shellcheck-py has no wheel for arm64. Its sdist downloads the upstream binary and verifies its
+# checksum, so building it is cheap. Every other package must come as a wheel.
+source_builds = {"shellcheck-py"}
+
+# Pins are commented out in the template, e.g. "# ruff==0.17.2".
+pin_pattern = re.compile(r"^#?\s*(?P<name>[A-Za-z0-9._-]+)==(?P<version>\S+)\s*$")
+
+
+@dataclass
+class Pin:
+    name: str
+    version: str
+
+    @property
+    def requirement(self) -> str:
+        return f"{self.name}=={self.version}"
+
+
+def read_pins() -> list[Pin]:
+    """Read the pins of the packaged tools, in the order of requirements-dev.txt."""
+    pins = []
+
+    for line in requirements_file.read_text().splitlines():
+        match = pin_pattern.match(line)
+
+        if match and match["name"] in binary_in_wheel:
+            pins.append(Pin(match["name"], match["version"]))
+
+    missing = binary_in_wheel.keys() - {pin.name for pin in pins}
+
+    if missing:
+        sys.exit(
+            f"Error: {requirements_file.name} has no pin for {', '.join(sorted(missing))}."
+        )
+
+    return pins
+
+
+def build_wheels(pins: list[Pin], wheel_directory: Path) -> None:
+    """Fetch the wheels for the current architecture, building only the allowed sdists."""
+    binary_only = [pin.name for pin in pins if pin.name not in source_builds]
+
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "wheel",
+            "--no-deps",
+            "--only-binary",
+            ",".join(binary_only),
+            "--wheel-dir",
+            str(wheel_directory),
+            *[pin.requirement for pin in pins],
+        ],
+        check=True,
+    )
+
+
+def extract_wheel(pin: Pin, wheel_directory: Path, staging_directory: Path) -> None:
+    """Install the binary and the license files of one wheel into the staging directory."""
+    normalized_name = pin.name.replace("-", "_")
+    (wheel,) = wheel_directory.glob(f"{normalized_name}-{pin.version}-*.whl")
+
+    with zipfile.ZipFile(wheel) as archive:
+        names = archive.namelist()
+        (binary,) = fnmatch.filter(names, binary_in_wheel[pin.name])
+        target = staging_directory / install_prefix / "bin" / Path(binary).name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(archive.read(binary))
+        target.chmod(0o755)
+
+        for license_file in fnmatch.filter(names, "*.dist-info/licenses/?*"):
+            target = (
+                staging_directory / doc_directory / pin.name / Path(license_file).name
+            )
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(archive.read(license_file))
+
+
+def write_control(pins: list[Pin], architecture: str, staging_directory: Path) -> None:
+    """Add the architecture and the tool versions to the static control file."""
+    control_file = staging_directory / "DEBIAN" / "control"
+    lines = control_file.read_text().splitlines()
+    tools = ", ".join(f"{pin.name} {pin.version}" for pin in pins)
+    # "Package" stays the first field, the extended description follows the synopsis.
+    lines.insert(1, f"Architecture: {architecture}")
+    lines.append(f" Installs {tools} to /{install_prefix}/bin.")
+    control_file.write_text("\n".join(lines) + "\n")
+
+
+def normalize_permissions(staging_directory: Path) -> None:
+    """Make the package independent of the umask of the build machine."""
+    for path in [staging_directory, *staging_directory.rglob("*")]:
+        if path.is_dir() or path.parent.name == "bin":
+            path.chmod(0o755)
+        else:
+            path.chmod(0o644)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--output-directory",
+        type=Path,
+        default=Path(),
+        help="The directory to write the package to.",
+    )
+    args = parser.parse_args()
+
+    pins = read_pins()
+    architecture = subprocess.run(
+        ["dpkg", "--print-architecture"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        wheel_directory = Path(temporary_directory) / "wheels"
+        staging_directory = Path(temporary_directory) / package_name
+
+        build_wheels(pins, wheel_directory)
+        shutil.copytree(package_source, staging_directory)
+
+        for pin in pins:
+            extract_wheel(pin, wheel_directory, staging_directory)
+
+        shutil.copytree(
+            config_directory, staging_directory / install_prefix / "share" / "config"
+        )
+        write_control(pins, architecture, staging_directory)
+        normalize_permissions(staging_directory)
+
+        args.output_directory.mkdir(parents=True, exist_ok=True)
+        # Given a directory, dpkg-deb names the package <package>_<version>_<architecture>.deb.
+        # Set the compression explicitly, as the default differs between dpkg versions.
+        subprocess.run(
+            [
+                "dpkg-deb",
+                "--build",
+                "--root-owner-group",
+                "-Zxz",
+                "-z9",
+                str(staging_directory),
+                str(args.output_directory),
+            ],
+            check=True,
+        )
+
+
+if __name__ == "__main__":
+    main()
