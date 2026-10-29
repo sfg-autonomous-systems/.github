@@ -1,45 +1,6 @@
 # Shell
 
-Editor setup and semantic coding standards for shell scripts. Formatting is handled by `shfmt`, linting by `shellcheck`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
-
-## Tooling
-
-### Required Extensions
-
-| Extension ID                    | Name     | Marketplace                                                                               |
-| ------------------------------- | -------- | ----------------------------------------------------------------------------------------- |
-| `mads-hartmann.bash-ide-vscode` | Bash IDE | [Link](https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode) |
-
-### Configuration Files
-
-Copy the following from [`config/`](../config/) into the repository root:
-
-| File                                       | Tool         | Purpose          |
-| ------------------------------------------ | ------------ | ---------------- |
-| [`.editorconfig`](../config/.editorconfig) | `shfmt`      | Shell formatting |
-| [`.shellcheckrc`](../config/.shellcheckrc) | `shellcheck` | Shell linting    |
-
-If the repository already has an `.editorconfig`, merge both sections into it.
-
-In `requirements-dev.txt`, uncomment `shellcheck-py` and `shfmt-py`.
-
-> [!warning]
-> Bash IDE looks for `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace, or, if you open a parent directory, also copy `.shellcheckrc` to `~/.config/shellcheckrc`.
-
-### VS Code Settings
-
-Merge the following into your project's `.vscode/settings.json`. Bash IDE takes the indentation from these editor settings, not from `.editorconfig`.
-
-```json
-{
-    "[shellscript]": {
-        "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode",
-        "editor.detectIndentation": false,
-        "editor.insertSpaces": true,
-        "editor.tabSize": 4
-    }
-}
-```
+Semantic coding standards for shell scripts. Formatting is handled by `shfmt`, linting by `shellcheck`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
 ## General
 

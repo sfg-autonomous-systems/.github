@@ -1,40 +1,6 @@
 # C++
 
-Editor setup and semantic coding standards for C++ and CMake. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
-
-## Tooling
-
-### Required Extensions
-
-| Extension ID                           | Name                   | Marketplace                                                                                      |
-| -------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
-| `josetr.cmake-language-support-vscode` | CMake Language Support | [Link](https://marketplace.visualstudio.com/items?itemName=josetr.cmake-language-support-vscode) |
-| `ms-vscode.cpptools`                   | C/C++                  | [Link](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)                   |
-
-### Configuration Files
-
-Copy the following from [`config/`](../config/) into the repository root:
-
-| File                                       | Tool           | Purpose        |
-| ------------------------------------------ | -------------- | -------------- |
-| [`.clang-format`](../config/.clang-format) | `clang-format` | C++ formatting |
-
-In `requirements-dev.txt`, uncomment `clang-format`.
-
-### VS Code Settings
-
-Merge the following into your project's `.vscode/settings.json`:
-
-```json
-{
-    "[cpp]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
-    },
-    "[cmake]": {
-        "editor.defaultFormatter": "josetr.cmake-language-support-vscode"
-    }
-}
-```
+Semantic coding standards for C++ and CMake. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
 ## C++
 
