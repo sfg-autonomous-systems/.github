@@ -123,7 +123,8 @@ jobs:
             "${tool}" --version
           done
 
-  submit:
+  merge:
+    name: Merge Packages
     needs:
       - check-version
       - test
@@ -138,19 +139,23 @@ jobs:
           name: sfg-contribution-tooling
           pattern: sfg-contribution-tooling-*
 
-      # The binaries do not depend on the Ubuntu release, so every distribution gets the same packages.
-      - name: Submit Packages for Jammy
-        uses: sfg-autonomous-systems/sfg_apt_repo/.github/actions/submit_packages@main
-        with:
-          submitter_app_client_id: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_CLIENT_ID }}
-          submitter_app_private_key: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_PRIVATE_KEY }}
-          distribution: jammy
-          artifact_name: sfg-contribution-tooling
+  submit:
+    name: Submit Packages for ${{ matrix.distribution }}
+    needs: merge
+    strategy:
+      fail-fast: false
+      matrix:
+        # The binaries do not depend on the Ubuntu release, so every distribution gets the same packages.
+        distribution:
+          - jammy
+          - noble
+    runs-on: ubuntu-24.04
 
-      - name: Submit Packages for Noble
+    steps:
+      - name: Submit Packages
         uses: sfg-autonomous-systems/sfg_apt_repo/.github/actions/submit_packages@main
         with:
           submitter_app_client_id: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_CLIENT_ID }}
           submitter_app_private_key: ${{ secrets.SFG_APT_REPO_SUBMITTER_APP_PRIVATE_KEY }}
-          distribution: noble
+          distribution: ${{ matrix.distribution }}
           artifact_name: sfg-contribution-tooling
