@@ -6,7 +6,7 @@ This document outlines the general style guidelines and the shared tooling and e
 
 These guidelines apply to all languages. The language-specific style guidelines are linked in the table under [Editor & Repository Setup](#editor--repository-setup).
 
-### Comments, Logs, etc.
+### Comments and Logs
 
 - Write comments, log messages, etc. either as full sentences with punctuation, or as Title Case headings without punctuation, such as a comment that labels the code that follows.
 - Where a tool has a well-established convention that clashes with ours, follow the tool's convention instead. For example, `argparse` help texts are lowercase without punctuation.
@@ -19,7 +19,7 @@ parser.add_argument("--output-directory", help="directory to write the package t
 # Validate Inputs
 if not pins:
     # Nothing is pinned, so there is no package to build.
-    print("No tools are pinned in requirements-dev.txt.", file=sys.stderr)
+    print("Error: No tools are pinned in requirements-dev.txt.", file=sys.stderr)
     sys.exit(1)
 ```
 
@@ -69,20 +69,23 @@ All formatters and linters come in the `sfg-contribution-tooling` package. [Add 
 sudo apt install sfg-contribution-tooling
 ```
 
-The package installs `clang-format`, `ruff`, `shellcheck`, `shfmt` and `ty` to `/opt/sfg-contribution-tooling/bin/`, which is not on the `PATH`, and the configuration files from [`config/`](config/) to `/opt/sfg-contribution-tooling/share/config/`.
+The package installs `clang-format`, `ruff`, `rumdl`, `shellcheck`, `shfmt` and `ty` to `/opt/sfg-contribution-tooling/bin/`, which is not on the `PATH`, and the configuration files from [`config/`](config/) to `/opt/sfg-contribution-tooling/share/config/`.
 
 ### Editor & Repository Setup
 
 For each language the repository uses, install the extensions and copy the configuration files from [`config/`](config/) into the repository root:
 
-| Language | Extensions                                                                        | Configuration Files                                                              | Language-Specific Style Guidelines |
-| -------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
-| C++      | [`ms-vscode.cpptools`][cpptools], [`josetr.cmake-language-support-vscode`][cmake] | [`.clang-format`](config/.clang-format)                                          | [C++](style/cpp.md)                |
-| Python   | [`ms-python.python`][python], [`charliermarsh.ruff`][ruff], [`astral-sh.ty`][ty]  | [`ruff.toml`](config/ruff.toml), [`ty.toml`](config/ty.toml)                     | [Python](style/python.md)          |
-| Shell    | [`mads-hartmann.bash-ide-vscode`][bash-ide]                                       | [`.editorconfig`](config/.editorconfig), [`.shellcheckrc`](config/.shellcheckrc) | [Shell](style/shell.md)            |
+| Language | Extensions                                                                       | Configuration Files                                                              | Language-Specific Style Guidelines |
+| -------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
+| C++      | [`ms-vscode.cpptools`][cpptools]                                                 | [`.clang-format`](config/.clang-format)                                          | [C++](style/cpp.md)                |
+| CMake    | [`josetr.cmake-language-support-vscode`][cmake]                                  |                                                                                  | [CMake](style/cmake.md)            |
+| Markdown | [`rvben.rumdl`][rumdl]                                                           | [`.rumdl.toml`](config/.rumdl.toml)                                              |                                    |
+| Python   | [`ms-python.python`][python], [`charliermarsh.ruff`][ruff], [`astral-sh.ty`][ty] | [`ruff.toml`](config/ruff.toml), [`ty.toml`](config/ty.toml)                     | [Python](style/python.md)          |
+| Shell    | [`mads-hartmann.bash-ide-vscode`][bash-ide]                                      | [`.editorconfig`](config/.editorconfig), [`.shellcheckrc`](config/.shellcheckrc) | [Shell](style/shell.md)            |
 
 [cpptools]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools
 [cmake]: https://marketplace.visualstudio.com/items?itemName=josetr.cmake-language-support-vscode
+[rumdl]: https://marketplace.visualstudio.com/items?itemName=rvben.rumdl
 [python]: https://marketplace.visualstudio.com/items?itemName=ms-python.python
 [ruff]: https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff
 [ty]: https://marketplace.visualstudio.com/items?itemName=astral-sh.ty
@@ -94,16 +97,20 @@ Then add the following to the repository's `.vscode/settings.json`. Use the whol
 {
     // General Settings
     "editor.formatOnSave": true,
-
     // C++ Settings
     "C_Cpp.clang_format_path": "/opt/sfg-contribution-tooling/bin/clang-format",
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
     },
+    // CMake Settings
     "[cmake]": {
         "editor.defaultFormatter": "josetr.cmake-language-support-vscode"
     },
-
+    // Markdown Settings
+    "rumdl.server.path": "/opt/sfg-contribution-tooling/bin/rumdl",
+    "[markdown]": {
+        "editor.defaultFormatter": "rvben.rumdl"
+    },
     // Python Settings
     "python.languageServer": "Pylance",
     "ruff.path": ["/opt/sfg-contribution-tooling/bin/ruff"],
@@ -115,7 +122,6 @@ Then add the following to the repository's `.vscode/settings.json`. Use the whol
             "source.organizeImports.ruff": "explicit"
         }
     },
-
     // Shell Settings
     "bashIde.shellcheckPath": "/opt/sfg-contribution-tooling/bin/shellcheck",
     "bashIde.shfmt.path": "/opt/sfg-contribution-tooling/bin/shfmt",
@@ -132,4 +138,4 @@ Then add the following to the repository's `.vscode/settings.json`. Use the whol
 > ty and Bash IDE look for `ty.toml` and `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace. If you open a parent directory, also copy `.shellcheckrc` to `~/.config/shellcheckrc`.
 
 > [!warning]
-> Configure each tool in exactly one place. Do not additionally add `[tool.ruff]` or `[tool.ty]` sections to a `pyproject.toml`: `ruff.toml` and `ty.toml` take precedence and such sections are ignored.
+> Configure each tool in exactly one place. Do not additionally add `[tool.ruff]`, `[tool.rumdl]` or `[tool.ty]` sections to a `pyproject.toml`: `ruff.toml`, `.rumdl.toml` and `ty.toml` take precedence and such sections are ignored.

@@ -17,6 +17,11 @@ Comment: Source: https://github.com/astral-sh/ruff
  The licenses of the bundled third-party code are in ruff/LICENSE next to this
  file.
 
+Files: opt/sfg-contribution-tooling/bin/rumdl
+Copyright: 2024-2025 Ruben J. Jongejan
+License: MIT
+Comment: Source: https://github.com/rvben/rumdl
+
 Files: opt/sfg-contribution-tooling/bin/ty
 Copyright: 2025 Astral Software Inc.
 License: MIT

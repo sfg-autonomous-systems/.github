@@ -1,16 +1,14 @@
 # C++
 
-Semantic coding standards for C++ and CMake. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
+Semantic coding standards for C++. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
-## C++
-
-### Header Management
+## Header Management
 
 - Use `#pragma once` at the top of all header files instead of traditional include guards.
 - Use **quotes (`" "`)** for our own workspace and local project headers.
 - Use **angle brackets (`< >`)** for system standard libraries and third-party dependencies.
 
-#### Example
+### Example
 
 ```cpp
 #pragma once
@@ -21,7 +19,7 @@ Semantic coding standards for C++ and CMake. Formatting is handled by `clang-for
 #include "sfg_agent/agent_discoverer.hpp"
 ```
 
-### Naming Conventions
+## Naming Conventions
 
 - **Classes, Structs, Enums, and Typedefs:** Use `PascalCase`.
 - **Functions and Local Variables:** Use `snake_case`.
@@ -30,7 +28,7 @@ Semantic coding standards for C++ and CMake. Formatting is handled by `clang-for
 - **Macros, and Defines:** Use `UPPER_SNAKE_CASE`.
 - **Enum Values:** Use `PascalCase` for modern scoped enums (`enum class`), or `UPPER_SNAKE_CASE` if using legacy enums.
 
-#### Example
+### Example
 
 ```cpp
 constexpr int max_buffer_size = 1024;
@@ -52,7 +50,7 @@ private:
 };
 ```
 
-### Class/Struct Declaration Order
+## Class/Struct Declaration Order
 
 - Use each scope exactly once per class/struct.
 - Order `public` before `protected`, and `protected` before `private`.
@@ -62,20 +60,10 @@ private:
   3. Methods (member functions).
   4. Member variables (fields).
 
-### Other Remarks
+## Other Remarks
 
 - Always use namespaces for your code.
-- Have no more than one top-level class/struct declaration per file. 
+- Have no more than one top-level class/struct declaration per file.
 - Use `auto` when the type is explicitly clear on the right-hand side of the assignment.
 - Do not use the `this` pointer unless required.
 - Write comments with `//` only. Do not use `/* */`.
-
-## CMakeLists.txt
-
-### Architecture
-
-- **Rule:** Strictly employ **Target-Based CMake**. Use `target_link_libraries`, `target_include_directories`, and `target_compile_definitions`. Never use directory-wide commands like `include_directories` or `link_directories()`.
-
-### Dependency Management
-
-- **Rule:** Use modern `find_package(Library REQUIRED)` to locate and incorporate dependencies, passing the imported targets to `target_link_libraries`. Avoid manually specifying include paths for external libraries.

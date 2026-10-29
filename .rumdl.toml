@@ -1,0 +1,15 @@
+[global]
+disable = [
+    "MD013", # Allow lines of any length, as paragraphs are written on one line.
+]
+extend-enable = [
+    "MD060", # Require aligned table columns.
+    "MD063", # Require Title Case headings.
+    "MD084", # Report invisible Unicode characters.
+    "MD087", # Report disable comments that suppress nothing.
+    "MD088", # Require ASCII quotes.
+    "MD095", # Report confusable non-ASCII characters in link destinations.
+]
+
+[MD059]
+prohibited-texts = ["click here", "link", "more"] # Allow "here" as link text.
