@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the sfg-contribution-tooling Debian package from the tools pinned in requirements-dev.txt."""
+"""Build the sfg-contribution-tooling Debian package from the tools pinned in its requirements file."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ package_name = "sfg-contribution-tooling"
 repository_root = Path(__file__).resolve().parent.parent
 package_source = repository_root / "src" / package_name
 config_directory = repository_root / "contributing" / "config"
-requirements_file = config_directory / "requirements-dev.txt"
+requirements_file = repository_root / "src" / f"{package_name}-requirements.txt"
 install_prefix = Path("opt") / package_name
 doc_directory = Path("usr") / "share" / "doc" / package_name
 
@@ -35,8 +35,7 @@ binary_in_wheel = {
 # checksum, so building it is cheap. Every other package must come as a wheel.
 source_builds = {"shellcheck-py"}
 
-# Pins are commented out in the template, e.g. "# ruff==0.17.2".
-pin_pattern = re.compile(r"^#?\s*(?P<name>[A-Za-z0-9._-]+)==(?P<version>\S+)\s*$")
+pin_pattern = re.compile(r"^(?P<name>[A-Za-z0-9._-]+)==(?P<version>\S+)\s*$")
 
 
 @dataclass
@@ -50,7 +49,7 @@ class Pin:
 
 
 def read_pins() -> list[Pin]:
-    """Read the pins of the packaged tools, in the order of requirements-dev.txt."""
+    """Read the pins of the packaged tools, in the order of the requirements file."""
     pins = []
 
     for line in requirements_file.read_text().splitlines():

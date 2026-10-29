@@ -1,30 +1,102 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: sfg-contribution-tooling
 Source: https://github.com/sfg-autonomous-systems/.github
-Comment: The binaries are extracted unmodified from the wheels pinned in
- /opt/sfg-contribution-tooling/share/config/requirements-dev.txt. The license
- files shipped in those wheels are installed next to this file.
+Comment: The binaries are extracted unmodified from the wheels of the tool
+ versions listed in the package description (dpkg -s sfg-contribution-tooling).
+ The license files shipped in those wheels are installed next to this file.
 
 Files: opt/sfg-contribution-tooling/bin/clang-format
 Copyright: LLVM Project contributors
 License: Apache-2.0 WITH LLVM-exception
 Comment: Source: https://github.com/llvm/llvm-project
- The full Apache 2.0 license text is in /usr/share/common-licenses/Apache-2.0.
 
 Files: opt/sfg-contribution-tooling/bin/ruff
- opt/sfg-contribution-tooling/bin/ty
-Copyright: Astral Software Inc.
+Copyright: 2022 Charles Marsh
 License: MIT
-Comment: Source: https://github.com/astral-sh/ruff and https://github.com/astral-sh/ty
+Comment: Source: https://github.com/astral-sh/ruff
+ The licenses of the bundled third-party code are in ruff/LICENSE next to this
+ file.
+
+Files: opt/sfg-contribution-tooling/bin/ty
+Copyright: 2025 Astral Software Inc.
+License: MIT
+Comment: Source: https://github.com/astral-sh/ty
 
 Files: opt/sfg-contribution-tooling/bin/shellcheck
 Copyright: Vidar Holen and contributors
 License: GPL-3.0-or-later
 Comment: Source: https://github.com/koalaman/shellcheck, the release tagged
  with the version that shellcheck --version prints.
- The full license text is in /usr/share/common-licenses/GPL-3.
 
 Files: opt/sfg-contribution-tooling/bin/shfmt
-Copyright: Daniel Martí and contributors
+Copyright: 2016 Daniel Martí
 License: BSD-3-Clause
 Comment: Source: https://github.com/mvdan/sh
+
+License: Apache-2.0 WITH LLVM-exception
+ The full Apache 2.0 license text is in /usr/share/common-licenses/Apache-2.0.
+ .
+ ---- LLVM Exceptions to the Apache 2.0 License ----
+ .
+ As an exception, if, as a result of your compiling your source code, portions
+ of this Software are embedded into an Object form of such source code, you
+ may redistribute such embedded portions in such Object form without complying
+ with the conditions of Sections 4(a), 4(b) and 4(d) of the License.
+ .
+ In addition, if you combine or link compiled forms of this Software with
+ software that is licensed under the GPLv2 ("Combined Software") and if a
+ court of competent jurisdiction determines that the patent provision (Section
+ 3), the indemnity provision (Section 9) or other Section of the License
+ conflicts with the conditions of the GPLv2, you may retroactively and
+ prospectively choose to deem waived or otherwise exclude such Section(s) of
+ the License, but only in their entirety and only with respect to the Combined
+ Software.
+
+License: GPL-3.0-or-later
+ The full license text is in /usr/share/common-licenses/GPL-3.
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+License: BSD-3-Clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+ .
+    * Redistributions of source code must retain the above copyright
+ notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+ copyright notice, this list of conditions and the following disclaimer
+ in the documentation and/or other materials provided with the
+ distribution.
+    * Neither the name of the copyright holder nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
