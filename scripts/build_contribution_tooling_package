@@ -22,8 +22,8 @@ requirements_file = config_directory / "requirements-dev.txt"
 install_prefix = Path("opt") / package_name
 doc_directory = Path("usr") / "share" / "doc" / package_name
 
-# The binary each packaged wheel ships, as a glob within the wheel. Pins of other packages, e.g.
-# mypy, are ignored.
+# The binary each packaged wheel ships, as a glob within the wheel. Pins of other packages are
+# ignored.
 binary_in_wheel = {
     "clang-format": "clang_format/data/bin/clang-format",
     "ruff": "ruff-*.data/scripts/ruff",

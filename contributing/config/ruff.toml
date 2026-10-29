@@ -3,6 +3,8 @@
 
 [lint]
 extend-select = [
+    "ANN0",  # Require type hints for function arguments.
+    "ANN2",  # Require type hints for function return values.
     "I002",  # Require the imports below.
     "N",     # Enforce pep8-naming.
     "UP006", # Enforce `list[str]` instead of `List[str]`.

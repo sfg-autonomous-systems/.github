@@ -1,16 +1,16 @@
 # Python
 
-Editor setup and semantic coding standards for Python. Formatting and linting are handled by `ruff`, type checking by `mypy`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
+Editor setup and semantic coding standards for Python. Formatting and linting are handled by `ruff`, type checking by `ty`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
 ## Tooling
 
 ### Required Extensions
 
-| Extension ID                  | Name              | Marketplace                                                                             |
-| ----------------------------- | ----------------- | --------------------------------------------------------------------------------------- |
-| `charliermarsh.ruff`          | Ruff              | [Link](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff)          |
-| `ms-python.mypy-type-checker` | Mypy Type Checker | [Link](https://marketplace.visualstudio.com/items?itemName=ms-python.mypy-type-checker) |
-| `ms-python.python`            | Python            | [Link](https://marketplace.visualstudio.com/items?itemName=ms-python.python)            |
+| Extension ID         | Name   | Marketplace                                                                    |
+| -------------------- | ------ | ------------------------------------------------------------------------------ |
+| `astral-sh.ty`       | ty     | [Link](https://marketplace.visualstudio.com/items?itemName=astral-sh.ty)       |
+| `charliermarsh.ruff` | Ruff   | [Link](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) |
+| `ms-python.python`   | Python | [Link](https://marketplace.visualstudio.com/items?itemName=ms-python.python)   |
 
 ### Configuration Files
 
@@ -19,12 +19,12 @@ Copy the following from [`config/`](../config/) into the repository root:
 | File                               | Tool   | Purpose                       |
 | ---------------------------------- | ------ | ----------------------------- |
 | [`ruff.toml`](../config/ruff.toml) | `ruff` | Python formatting and linting |
-| [`mypy.ini`](../config/mypy.ini)   | `mypy` | Python type checking          |
+| [`ty.toml`](../config/ty.toml)     | `ty`   | Python type checking          |
 
-In `requirements-dev.txt`, uncomment `ruff` and `mypy`.
+In `requirements-dev.txt`, uncomment `ruff` and `ty`.
 
 > [!warning]
-> Configure each tool in exactly one place. Do not additionally add `[tool.ruff]` or `[tool.mypy]` sections to a `pyproject.toml`: `ruff.toml` and `mypy.ini` take precedence and such sections are silently ignored.
+> Configure each tool in exactly one place. Do not additionally add `[tool.ruff]` or `[tool.ty]` sections to a `pyproject.toml`: `ruff.toml` and `ty.toml` take precedence and such sections are ignored.
 
 ### VS Code Settings
 
@@ -39,9 +39,7 @@ Merge the following into your project's `.vscode/settings.json`. This makes the 
             "source.organizeImports.ruff": "explicit"
         }
     },
-    "mypy-type-checker.importStrategy": "fromEnvironment",
-    "mypy-type-checker.cwd": "${nearestConfig}",
-    "mypy-type-checker.showNotifications": "onError"
+    "ty.disableLanguageServices": true
 }
 ```
 
