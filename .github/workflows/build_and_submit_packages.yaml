@@ -85,6 +85,7 @@ jobs:
           if-no-files-found: error
 
   test:
+    name: Test Package for ${{ matrix.architecture }} on ${{ matrix.image }}
     needs: build
     strategy:
       fail-fast: false
