@@ -23,6 +23,40 @@ if not pins:
     sys.exit(1)
 ```
 
+### Empty Lines Around Control Flow
+
+```mermaid
+%%{init: {"flowchart": {"defaultRenderer": "elk"}}}%%
+
+flowchart LR
+    A["Control Flow Statement"] --> B{First statement directly inside another block?}
+    B -- Yes --> C[No empty line before.]
+    B -- No --> D[Empty line before.]
+    A --> E{Body followed by another part, such as else or except?}
+    E -- Yes --> F[No empty line after.]
+    E -- No --> G[Empty line after.]
+```
+
+#### Example
+
+```python
+total = 0
+
+for row in rows:
+    for cell in row:
+        if cell is None:
+            continue
+
+        total += cell
+
+if total > limit:
+    print("The total exceeds the limit.")
+else:
+    print("The total is within the limit.")
+
+print(f"Total: {total}")
+```
+
 ## Tooling & Editor Configuration
 
 We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary IDE. To ensure everyone's code is formatted identically and automatically upon saving, you must apply the settings below.
