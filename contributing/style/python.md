@@ -1,47 +1,6 @@
 # Python
 
-Editor setup and semantic coding standards for Python. Formatting and linting are handled by `ruff`, type checking by `ty`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
-
-## Tooling
-
-### Required Extensions
-
-| Extension ID         | Name   | Marketplace                                                                    |
-| -------------------- | ------ | ------------------------------------------------------------------------------ |
-| `astral-sh.ty`       | ty     | [Link](https://marketplace.visualstudio.com/items?itemName=astral-sh.ty)       |
-| `charliermarsh.ruff` | Ruff   | [Link](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) |
-| `ms-python.python`   | Python | [Link](https://marketplace.visualstudio.com/items?itemName=ms-python.python)   |
-
-### Configuration Files
-
-Copy the following from [`config/`](../config/) into the repository root:
-
-| File                               | Tool   | Purpose                       |
-| ---------------------------------- | ------ | ----------------------------- |
-| [`ruff.toml`](../config/ruff.toml) | `ruff` | Python formatting and linting |
-| [`ty.toml`](../config/ty.toml)     | `ty`   | Python type checking          |
-
-In `requirements-dev.txt`, uncomment `ruff` and `ty`.
-
-> [!warning]
-> Configure each tool in exactly one place. Do not additionally add `[tool.ruff]` or `[tool.ty]` sections to a `pyproject.toml`: `ruff.toml` and `ty.toml` take precedence and such sections are ignored.
-
-### VS Code Settings
-
-Merge the following into your project's `.vscode/settings.json`. This makes the extensions use the tool versions from `requirements-dev.txt`.
-
-```json
-{
-    "python.languageServer": "Pylance",
-    "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.codeActionsOnSave": {
-            "source.organizeImports.ruff": "explicit"
-        }
-    },
-    "ty.disableLanguageServices": true
-}
-```
+Semantic coding standards for Python. Formatting and linting are handled by `ruff`, type checking by `ty`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
 ## Typing
 
