@@ -1,6 +1,27 @@
 # Code Style & Tooling Guidelines
 
-This document outlines the shared tooling and editor configuration for our development, and links to the per-language style guidelines.
+This document outlines the general style guidelines and the shared tooling and editor configuration for our development, and links to the language-specific style guidelines.
+
+## General Style Guidelines
+
+These guidelines apply to all languages. The language-specific style guidelines are linked in the table under [Editor & Repository Setup](#editor--repository-setup).
+
+### Comments, Logs, etc.
+
+- Write comments, log messages, etc. either as full sentences with punctuation, or as Title Case headings without punctuation, such as a comment that labels the code that follows.
+- Where a tool has a well-established convention that clashes with ours, follow the tool's convention instead. For example, `argparse` help texts are lowercase without punctuation.
+
+#### Example
+
+```python
+parser.add_argument("--output-directory", help="directory to write the package to")
+
+# Validate Inputs
+if not pins:
+    # Nothing is pinned, so there is no package to build.
+    print("No tools are pinned in requirements-dev.txt.", file=sys.stderr)
+    sys.exit(1)
+```
 
 ## Tooling & Editor Configuration
 
@@ -20,48 +41,55 @@ The package installs `clang-format`, `ruff`, `shellcheck`, `shfmt` and `ty` to `
 
 For each language the repository uses, install the extensions and copy the configuration files from [`config/`](config/) into the repository root:
 
-| Language | Extensions                                                                        | Configuration Files                                                              | Style Guidelines          |
-| -------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------- |
-| C++      | [`ms-vscode.cpptools`][cpptools], [`josetr.cmake-language-support-vscode`][cmake] | [`.clang-format`](config/.clang-format)                                          | [C++](style/cpp.md)       |
-| Shell    | [`mads-hartmann.bash-ide-vscode`][bash-ide]                                       | [`.editorconfig`](config/.editorconfig), [`.shellcheckrc`](config/.shellcheckrc) | [Shell](style/shell.md)   |
-| Python   | [`ms-python.python`][python], [`charliermarsh.ruff`][ruff], [`astral-sh.ty`][ty]  | [`ruff.toml`](config/ruff.toml), [`ty.toml`](config/ty.toml)                     | [Python](style/python.md) |
+| Language | Extensions                                                                        | Configuration Files                                                              | Language-Specific Style Guidelines |
+| -------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
+| C++      | [`ms-vscode.cpptools`][cpptools], [`josetr.cmake-language-support-vscode`][cmake] | [`.clang-format`](config/.clang-format)                                          | [C++](style/cpp.md)                |
+| Python   | [`ms-python.python`][python], [`charliermarsh.ruff`][ruff], [`astral-sh.ty`][ty]  | [`ruff.toml`](config/ruff.toml), [`ty.toml`](config/ty.toml)                     | [Python](style/python.md)          |
+| Shell    | [`mads-hartmann.bash-ide-vscode`][bash-ide]                                       | [`.editorconfig`](config/.editorconfig), [`.shellcheckrc`](config/.shellcheckrc) | [Shell](style/shell.md)            |
 
 [cpptools]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools
 [cmake]: https://marketplace.visualstudio.com/items?itemName=josetr.cmake-language-support-vscode
-[bash-ide]: https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode
 [python]: https://marketplace.visualstudio.com/items?itemName=ms-python.python
 [ruff]: https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff
 [ty]: https://marketplace.visualstudio.com/items?itemName=astral-sh.ty
+[bash-ide]: https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode
 
 Then add the following to the repository's `.vscode/settings.json`. Use the whole block in every repository. Settings for languages and extensions a repository does not use are ignored.
 
 ```json
 {
+    // General Settings
     "editor.formatOnSave": true,
+
+    // C++ Settings
     "C_Cpp.clang_format_path": "/opt/sfg-contribution-tooling/bin/clang-format",
-    "bashIde.shellcheckPath": "/opt/sfg-contribution-tooling/bin/shellcheck",
-    "bashIde.shfmt.path": "/opt/sfg-contribution-tooling/bin/shfmt",
-    "python.languageServer": "Pylance",
-    "ruff.path": ["/opt/sfg-contribution-tooling/bin/ruff"],
-    "ty.path": ["/opt/sfg-contribution-tooling/bin/ty"],
-    "ty.disableLanguageServices": true,
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
     },
     "[cmake]": {
         "editor.defaultFormatter": "josetr.cmake-language-support-vscode"
     },
-    "[shellscript]": {
-        "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode",
-        "editor.detectIndentation": false,
-        "editor.insertSpaces": true,
-        "editor.tabSize": 4
-    },
+
+    // Python Settings
+    "python.languageServer": "Pylance",
+    "ruff.path": ["/opt/sfg-contribution-tooling/bin/ruff"],
+    "ty.path": ["/opt/sfg-contribution-tooling/bin/ty"],
+    "ty.disableLanguageServices": true,
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.codeActionsOnSave": {
             "source.organizeImports.ruff": "explicit"
         }
+    },
+
+    // Shell Settings
+    "bashIde.shellcheckPath": "/opt/sfg-contribution-tooling/bin/shellcheck",
+    "bashIde.shfmt.path": "/opt/sfg-contribution-tooling/bin/shfmt",
+    "[shellscript]": {
+        "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode",
+        "editor.detectIndentation": false,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4
     }
 }
 ```

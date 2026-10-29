@@ -68,6 +68,7 @@ private:
 - Have no more than one top-level class/struct declaration per file. 
 - Use `auto` when the type is explicitly clear on the right-hand side of the assignment.
 - Do not use the `this` pointer unless required.
+- Write comments with `//` only. Do not use `/* */`.
 
 ## CMakeLists.txt
 
