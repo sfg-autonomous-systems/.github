@@ -14,7 +14,7 @@ on:
       - contributing/config/**
       - scripts/build_contribution_tooling_package
       - src/sfg-contribution-tooling/**
-      - src/sfg-contribution-tooling-requirements.txt
+      - src/sfg-contribution-tooling-tools.toml
   workflow_dispatch:
 
 # Do not cancel an in-progress run, as it may be submitting packages.

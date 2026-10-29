@@ -1,0 +1,30 @@
+# Tools packaged in sfg-contribution-tooling, keyed by their package on PyPI. After changing a
+# version, bump the version in src/sfg-contribution-tooling/DEBIAN/control.
+#
+# version: The pinned version of the package.
+# binary: The binary the wheel ships, as a glob within the wheel.
+# source_build: Whether the package may be built from its sdist. Defaults to false, so the
+#   package must come as a wheel.
+
+[clang-format]
+version = "23.1.0"
+binary = "clang_format/data/bin/clang-format"
+
+[ruff]
+version = "0.17.2"
+binary = "ruff-*.data/scripts/ruff"
+
+# shellcheck-py has no wheel for arm64. Its sdist downloads the upstream binary and verifies its
+# checksum, so building it is cheap.
+[shellcheck-py]
+version = "0.11.0.1"
+binary = "shellcheck_py-*.data/scripts/shellcheck"
+source_build = true
+
+[shfmt-py]
+version = "4.2.0"
+binary = "shfmt_py-*.data/scripts/shfmt"
+
+[ty]
+version = "0.0.94"
+binary = "ty-*.data/scripts/ty"
