@@ -1,4 +1,4 @@
-# Information on Working With Repositories
+# Information on Working with Repositories
 
 ## Clone Using `--recurse-submodule`
 
@@ -10,7 +10,7 @@ Many repositories withing the SFG project are interconnected, i.e. they embed ea
 git clone --recurse-submodule git@github.com:sfg-autonomous-systems/<repository>.git
 ```
 
-### I forgot to clone using `--recurse-submodule`. What do I do?
+### I Forgot to Clone Using `--recurse-submodule`. What Do I Do?
 
 If you already cloned a repository without the flag, you can initialize the submodules at any time by running these commands from inside the repository's root directory:
 
@@ -19,7 +19,7 @@ git submodule init
 git submodule update --recursive
 ```
 
-## Ensure Added Submodules Have a Relative Path Inside the Parent Repository’s `.gitmodules`
+## Ensure Added Submodules Have a Relative Path Inside the Parent Repository's `.gitmodules`
 
 ### How to Add a Submodule Correctly
 
@@ -57,7 +57,7 @@ Keeping the absolute URL inside `.gitmodules` means that if you added the submod
 
 the SSH URL will be stored inside `.gitmodules`. If someone were to clone the parent repository via HTTPS, e.g.
 
-- `git clone --recurse-submodule https://github.com/sfg-autonomous-systems/<repository>.git` 
+- `git clone --recurse-submodule https://github.com/sfg-autonomous-systems/<repository>.git`
 
 git would still attempt to clone the embedded submodule via SSH **even though the parent repository was cloned via HTTPS**. Consequently, if the user doesn't have an SSH key set on his machine, he will be unable to clone the submodule.
 

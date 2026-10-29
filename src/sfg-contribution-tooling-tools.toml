@@ -4,7 +4,7 @@
 # version: The pinned version of the package.
 # binary: The binary the wheel ships, as a glob within the wheel.
 # source_build: Whether the package may be built from its sdist. Defaults to false, so the
-#   package must come as a wheel.
+#               package must come as a wheel.
 
 [clang-format]
 version = "23.1.0"
@@ -13,6 +13,10 @@ binary = "clang_format/data/bin/clang-format"
 [ruff]
 version = "0.17.2"
 binary = "ruff-*.data/scripts/ruff"
+
+[rumdl]
+version = "0.3.2"
+binary = "rumdl-*.data/scripts/rumdl"
 
 # shellcheck-py has no wheel for arm64. Its sdist downloads the upstream binary and verifies its
 # checksum, so building it is cheap.

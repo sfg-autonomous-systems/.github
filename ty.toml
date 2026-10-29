@@ -1,0 +1,9 @@
+[rules]
+blanket-ignore-comment = "error"         # Require rule codes in `ty: ignore` comments.
+missing-type-argument = "error"          # Enforce `list[str]` instead of `list`.
+possibly-unresolved-reference = "error"  # Report names that may be undefined.
+redundant-condition-strict = "error"     # Report conditions that are always true or false.
+unsound-return-statement = "error"       # Report returning `Any` from a typed function.
+
+[terminal]
+error-on-warning = true

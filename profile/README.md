@@ -22,7 +22,7 @@ Please thoroughly review our [Contributing Guidelines](../CONTRIBUTING.md) to un
 
 ## Publications
 
-* **[SFG-ROS:](https://iis-esslingen.github.io/sfg-ros/)** A resource-aware multi-agent software framework designed for dynamic fleet deployments. It utilizes schema-driven traffic routing to isolate high-frequency intra-agent traffic from the global network and bounds network traffic to $\mathcal{O}(1)$ while reducing the per-subscriber CPU scaling penalty by 72.3% versus standard ROS 2. 
+* **[SFG-ROS:](https://iis-esslingen.github.io/sfg-ros/)** A resource-aware multi-agent software framework designed for dynamic fleet deployments. It utilizes schema-driven traffic routing to isolate high-frequency intra-agent traffic from the global network and bounds network traffic to $\mathcal{O}(1)$ while reducing the per-subscriber CPU scaling penalty by 72.3% versus standard ROS 2.
 
 ## Affiliations
 
