@@ -9,6 +9,7 @@ These guidelines apply to all languages. The language-specific style guidelines 
 ### Comments and Logs
 
 - Write comments, log messages, etc. either as full sentences with punctuation, or as Title Case headings without punctuation, such as a comment that labels the code that follows.
+- Enclose variable names and other code in comments and log messages in single quotes instead of backticks.
 - Where a tool has a well-established convention that clashes with ours, follow the tool's convention instead. For example, `argparse` help texts are lowercase without punctuation.
 
 #### Example
@@ -18,7 +19,7 @@ parser.add_argument("--output-directory", help="directory to write the package t
 
 # Validate Inputs
 if not pins:
-    # Nothing is pinned, so there is no package to build.
+    # 'pins' is empty, so there is no package to build.
     print("Error: No tools are pinned in requirements-dev.txt.", file=sys.stderr)
     sys.exit(1)
 ```
