@@ -37,6 +37,11 @@ Copyright: 2021-2023 David Sherret
 License: MIT
 Comment: Source: https://github.com/dprint/dprint-plugin-toml
 
+Files: opt/sfg-contribution-tooling/share/dprint/xml.wasm
+Copyright: 2023-present Pig Fang
+License: MIT
+Comment: Source: https://github.com/g-plane/markup_fmt
+
 Files: opt/sfg-contribution-tooling/share/dprint/yaml.wasm
 Copyright: 2024-present Pig Fang
 License: MIT
