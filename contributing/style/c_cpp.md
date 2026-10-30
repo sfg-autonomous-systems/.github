@@ -1,3 +1,4 @@
+<!-- rumdl-disable-next-line MD063 -->
 # C/C++
 
 Semantic coding standards for C/C++. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
