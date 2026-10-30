@@ -69,24 +69,26 @@ All formatters and linters come in the `sfg-contribution-tooling` package. [Add 
 sudo apt install sfg-contribution-tooling
 ```
 
-The package installs `clang-format`, `dprint`, `ruff`, `rumdl`, `shellcheck`, `shfmt` and `ty` to `/opt/sfg-contribution-tooling/bin/`, which is not on the `PATH`, the dprint plugins to `/opt/sfg-contribution-tooling/share/dprint/`, and the configuration files from [`config/`](config/) to `/opt/sfg-contribution-tooling/share/config/`.
+The package installs the tools listed in the table below to `/opt/sfg-contribution-tooling/bin/`, which is not on the `PATH`, the dprint plugins to `/opt/sfg-contribution-tooling/share/dprint/`, and the configuration files from [`config/`](config/) to `/opt/sfg-contribution-tooling/share/config/`.
 
 ### Editor & Repository Setup
 
 For each language the repository uses, install the extensions and copy the configuration files from [`config/`](config/) into the repository root:
 
-| Language                  | Extensions                                                                       | Configuration Files                                                              | Language-Specific Style Guidelines |
-| ------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
-| C/C++                     | [`ms-vscode.cpptools`][cpptools]                                                 | [`.clang-format`](config/.clang-format)                                          | [C/C++](style/c_cpp.md)            |
-| CMake                     | [`josetr.cmake-language-support-vscode`][cmake]                                  |                                                                                  | [CMake](style/cmake.md)            |
-| Dockerfile/JSON/TOML/YAML | [`dprint.dprint`][dprint]                                                        | [`dprint.jsonc`](config/dprint.jsonc)                                            |                                    |
-| Markdown                  | [`rvben.rumdl`][rumdl]                                                           | [`.rumdl.toml`](config/.rumdl.toml)                                              |                                    |
-| Python                    | [`ms-python.python`][python], [`charliermarsh.ruff`][ruff], [`astral-sh.ty`][ty] | [`ruff.toml`](config/ruff.toml), [`ty.toml`](config/ty.toml)                     | [Python](style/python.md)          |
-| Shell                     | [`mads-hartmann.bash-ide-vscode`][bash-ide]                                      | [`.editorconfig`](config/.editorconfig), [`.shellcheckrc`](config/.shellcheckrc) | [Shell](style/shell.md)            |
+| Language                  | Tools                      | Extensions                                                                       | Configuration Files                                                              | Language-Specific Style Guidelines |
+| ------------------------- | -------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
+| C/C++                     | `clang-format`             | [`ms-vscode.cpptools`][cpptools]                                                 | [`.clang-format`](config/.clang-format)                                          | [C/C++](style/c_cpp.md)            |
+| CMake                     |                            | [`josetr.cmake-language-support-vscode`][cmake]                                  |                                                                                  | [CMake](style/cmake.md)            |
+| Dockerfile/JSON/TOML/YAML | `dprint`                   | [`dprint.dprint`][dprint]                                                        | [`dprint.jsonc`](config/dprint.jsonc)                                            |                                    |
+| GitHub Actions            | `actionlint`, `shellcheck` | [`jimeh.actionlint`][actionlint]                                                 |                                                                                  |                                    |
+| Markdown                  | `rumdl`                    | [`rvben.rumdl`][rumdl]                                                           | [`.rumdl.toml`](config/.rumdl.toml)                                              |                                    |
+| Python                    | `ruff`, `ty`               | [`ms-python.python`][python], [`charliermarsh.ruff`][ruff], [`astral-sh.ty`][ty] | [`ruff.toml`](config/ruff.toml), [`ty.toml`](config/ty.toml)                     | [Python](style/python.md)          |
+| Shell                     | `shellcheck`, `shfmt`      | [`mads-hartmann.bash-ide-vscode`][bash-ide]                                      | [`.editorconfig`](config/.editorconfig), [`.shellcheckrc`](config/.shellcheckrc) | [Shell](style/shell.md)            |
 
 [cpptools]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools
 [cmake]: https://marketplace.visualstudio.com/items?itemName=josetr.cmake-language-support-vscode
 [dprint]: https://marketplace.visualstudio.com/items?itemName=dprint.dprint
+[actionlint]: https://marketplace.visualstudio.com/items?itemName=jimeh.actionlint
 [rumdl]: https://marketplace.visualstudio.com/items?itemName=rvben.rumdl
 [python]: https://marketplace.visualstudio.com/items?itemName=ms-python.python
 [ruff]: https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff

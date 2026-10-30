@@ -59,7 +59,7 @@ def read_pins() -> tuple[list[Pin], list[DprintPlugin]]:
 
 
 def build_wheels(pins: list[Pin], wheel_directory: Path) -> None:
-    """Fetch the wheels for the current architecture, building only the allowed sdists."""
+    """Fetch the wheels for the current architecture, building only allowed source distributions."""
     binary_only = [pin.name for pin in pins if not pin.source_build]
 
     subprocess.run(

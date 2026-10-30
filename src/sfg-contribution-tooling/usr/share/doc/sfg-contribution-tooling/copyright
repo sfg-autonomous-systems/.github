@@ -7,6 +7,11 @@ Comment: The binaries are extracted unmodified from the wheels of the tool
  The dprint plugins in opt/sfg-contribution-tooling/share/dprint are the
  unmodified WebAssembly files of the plugin versions listed there as well.
 
+Files: opt/sfg-contribution-tooling/bin/actionlint
+Copyright: 2021 rhysd
+License: MIT
+Comment: Source: https://github.com/rhysd/actionlint
+
 Files: opt/sfg-contribution-tooling/bin/clang-format
 Copyright: LLVM Project contributors
 License: Apache-2.0 WITH LLVM-exception
