@@ -1,6 +1,6 @@
-# C++
+# C/C++
 
-Semantic coding standards for C++. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
+Semantic coding standards for C/C++. Formatting is handled by `clang-format`. See [Code Style & Tooling Guidelines](../code_style_and_tooling_guidelines.md) for the shared setup.
 
 ## Header Management
 
