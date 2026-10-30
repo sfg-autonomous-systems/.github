@@ -69,6 +69,11 @@ version = "0.9.0"
 url = "https://plugins.dprint.dev/toml-{version}.wasm"
 sha256 = "776e088ed4255a51a80e3640e5fd20b15661147e86df3e99611aaa37e9c59852"
 
+[dprint-plugins.xml]
+version = "0.27.6"
+url = "https://plugins.dprint.dev/g-plane/markup_fmt-v{version}.wasm"
+sha256 = "93dd0c870b60431ceea59f055792fee4a353868223c813d3a44414b31d1df602"
+
 [dprint-plugins.yaml]
 version = "0.6.0"
 url = "https://plugins.dprint.dev/g-plane/pretty_yaml-v{version}.wasm"

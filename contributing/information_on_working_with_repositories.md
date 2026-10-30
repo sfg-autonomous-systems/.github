@@ -62,3 +62,20 @@ the SSH URL will be stored inside `.gitmodules`. If someone were to clone the pa
 git would still attempt to clone the embedded submodule via SSH **even though the parent repository was cloned via HTTPS**. Consequently, if the user doesn't have an SSH key set on his machine, he will be unable to clone the submodule.
 
 Using relative urls inside `.gitmodules` resolves this issue, i.e. submodules will be cloned via SSH if the parent repository is cloned via SSH, and vice versa.
+
+## Write Commit Messages in the Conventional Commits Format
+
+Write commit messages in the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format, `<type>(<scope>)!: <description>`. The specification leaves the following open, which we settle as follows:
+
+- Use one of the types `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style` or `test`. The scope is optional.
+- Write the description in the imperative mood, starting with a lowercase letter and without a trailing period.
+- Explain in the optional body why the change was made, not how.
+- When a pull request is squash-merged, its title becomes the commit message, so it must follow the same format.
+
+### Example
+
+```text
+fix(cli): keep comments when updating settings.json
+
+The update command dropped comments above the first setting, so a second run reported differences again.
+```

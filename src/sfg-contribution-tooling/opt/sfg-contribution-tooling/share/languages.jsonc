@@ -127,6 +127,17 @@
             }
         }
     },
+    "xml": {
+        "name": "XML",
+        "configurationFiles": ["dprint.jsonc"],
+        "extensions": ["dprint.dprint"],
+        "settings": {
+            "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+            "[xml]": {
+                "editor.defaultFormatter": "dprint.dprint"
+            }
+        }
+    },
     "yaml": {
         "name": "YAML",
         "configurationFiles": ["dprint.jsonc"],
