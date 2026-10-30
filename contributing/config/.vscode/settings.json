@@ -15,6 +15,9 @@
     "[dockercompose][dockerfile][json][jsonc][toml][yaml]": {
         "editor.defaultFormatter": "dprint.dprint"
     },
+    // GitHub Actions Settings
+    "actionlint.executable": "/opt/sfg-contribution-tooling/bin/actionlint",
+    "actionlint.shellcheckExecutable": "/opt/sfg-contribution-tooling/bin/shellcheck",
     // Markdown Settings
     "rumdl.server.path": "/opt/sfg-contribution-tooling/bin/rumdl",
     "[markdown]": {

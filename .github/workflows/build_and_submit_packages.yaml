@@ -63,7 +63,8 @@ jobs:
             runner: ubuntu-24.04
           - architecture: arm64
             runner: ubuntu-24.04-arm
-    # Build natively, as pip only builds the shellcheck-py sdist for the architecture it runs on.
+    # Build natively, as pip only builds the source distributions of actionlint-py and shellcheck-py
+    # for the architecture it runs on.
     runs-on: ${{ matrix.runner }}
 
     steps:
