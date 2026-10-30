@@ -63,6 +63,28 @@ We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary I
 
 ### Tools
 
+[![Version][version-badge]][control] [![Build][build-badge]][build] [![Ubuntu][ubuntu-badge]][apt-repo] [![Architectures][architectures-badge]][workflow]
+
+[![actionlint-py][actionlint-py-badge]][tools] [![clang-format][clang-format-badge]][tools] [![dprint-py][dprint-py-badge]][tools] [![ruff][ruff-badge]][tools] [![rumdl][rumdl-badge]][tools] [![shellcheck-py][shellcheck-py-badge]][tools] [![shfmt-py][shfmt-py-badge]][tools] [![ty][ty-badge]][tools]
+
+[version-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling%2FDEBIAN%2Fcontrol&query=%24.Version&label=sfg-contribution-tooling&color=A81D33&logo=debian&logoColor=white
+[build-badge]: https://img.shields.io/github/actions/workflow/status/sfg-autonomous-systems/.github/build_and_submit_packages.yaml?branch=main&label=build&logo=githubactions&logoColor=white
+[ubuntu-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2F.github%2Fworkflows%2Fbuild_and_submit_packages.yaml&query=%24.jobs.submit.strategy.matrix.distribution%5B*%5D&label=Ubuntu&color=E95420&logo=ubuntu&logoColor=white
+[architectures-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2F.github%2Fworkflows%2Fbuild_and_submit_packages.yaml&query=%24.jobs.build.strategy.matrix.include%5B*%5D.architecture&label=architectures&color=blue
+[actionlint-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27actionlint-py%27%5D.version&label=actionlint-py&color=informational
+[clang-format-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27clang-format%27%5D.version&label=clang-format&color=informational
+[dprint-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27dprint-py%27%5D.version&label=dprint-py&color=informational
+[ruff-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24.ruff.version&label=ruff&color=informational
+[rumdl-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24.rumdl.version&label=rumdl&color=informational
+[shellcheck-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27shellcheck-py%27%5D.version&label=shellcheck-py&color=informational
+[shfmt-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27shfmt-py%27%5D.version&label=shfmt-py&color=informational
+[ty-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24.ty.version&label=ty&color=informational
+[control]: ../src/sfg-contribution-tooling/DEBIAN/control
+[build]: https://github.com/sfg-autonomous-systems/.github/actions/workflows/build_and_submit_packages.yaml?query=branch%3Amain
+[apt-repo]: https://github.com/sfg-autonomous-systems/sfg_apt_repo
+[workflow]: ../.github/workflows/build_and_submit_packages.yaml
+[tools]: ../src/sfg-contribution-tooling-tools.toml
+
 All formatters and linters come in the `sfg-contribution-tooling` package. [Add the SFG APT repository](https://github.com/sfg-autonomous-systems/sfg_apt_repo#add-the-apt-repository), then install the package:
 
 ```bash
