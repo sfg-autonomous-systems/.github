@@ -9,6 +9,7 @@ These guidelines apply to all languages. The language-specific style guidelines 
 ### Comments and Logs
 
 - Write comments, log messages, etc. either as full sentences with punctuation, or as Title Case headings without punctuation, such as a comment that labels the code that follows.
+- Enclose variable names and other code in comments and log messages in single quotes instead of backticks.
 - Where a tool has a well-established convention that clashes with ours, follow the tool's convention instead. For example, `argparse` help texts are lowercase without punctuation.
 
 #### Example
@@ -18,7 +19,7 @@ parser.add_argument("--output-directory", help="directory to write the package t
 
 # Validate Inputs
 if not pins:
-    # Nothing is pinned, so there is no package to build.
+    # 'pins' is empty, so there is no package to build.
     print("Error: No tools are pinned in requirements-dev.txt.", file=sys.stderr)
     sys.exit(1)
 ```
@@ -63,17 +64,43 @@ We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary I
 
 ### Tools
 
+[![Version][version-badge]][control] [![Build][build-badge]][build] [![Ubuntu][ubuntu-badge]][apt-repo] [![Architectures][architectures-badge]][workflow]
+
+[![actionlint-py][actionlint-py-badge]][tools] [![clang-format][clang-format-badge]][tools] [![dprint-py][dprint-py-badge]][tools] [![ruff][ruff-badge]][tools] [![rumdl][rumdl-badge]][tools] [![shellcheck-py][shellcheck-py-badge]][tools] [![shfmt-py][shfmt-py-badge]][tools] [![ty][ty-badge]][tools]
+
+[version-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling%2FDEBIAN%2Fcontrol&query=%24.Version&label=sfg-contribution-tooling&color=A81D33&logo=debian&logoColor=white
+[build-badge]: https://img.shields.io/github/actions/workflow/status/sfg-autonomous-systems/.github/build_and_submit_packages.yaml?branch=main&label=build&logo=githubactions&logoColor=white
+[ubuntu-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2F.github%2Fworkflows%2Fbuild_and_submit_packages.yaml&query=%24.jobs.submit.strategy.matrix.distribution%5B*%5D&label=Ubuntu&color=E95420&logo=ubuntu&logoColor=white
+[architectures-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2F.github%2Fworkflows%2Fbuild_and_submit_packages.yaml&query=%24.jobs.build.strategy.matrix.include%5B*%5D.architecture&label=architectures&color=blue
+[actionlint-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27actionlint-py%27%5D.version&label=actionlint-py&color=informational
+[clang-format-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27clang-format%27%5D.version&label=clang-format&color=informational
+[dprint-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27dprint-py%27%5D.version&label=dprint-py&color=informational
+[ruff-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24.ruff.version&label=ruff&color=informational
+[rumdl-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24.rumdl.version&label=rumdl&color=informational
+[shellcheck-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27shellcheck-py%27%5D.version&label=shellcheck-py&color=informational
+[shfmt-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27shfmt-py%27%5D.version&label=shfmt-py&color=informational
+[ty-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24.ty.version&label=ty&color=informational
+[control]: ../src/sfg-contribution-tooling/DEBIAN/control
+[build]: https://github.com/sfg-autonomous-systems/.github/actions/workflows/build_and_submit_packages.yaml?query=branch%3Amain
+[apt-repo]: https://github.com/sfg-autonomous-systems/sfg_apt_repo
+[workflow]: ../.github/workflows/build_and_submit_packages.yaml
+[tools]: ../src/sfg-contribution-tooling-tools.toml
+
 All formatters and linters come in the `sfg-contribution-tooling` package. [Add the SFG APT repository](https://github.com/sfg-autonomous-systems/sfg_apt_repo#add-the-apt-repository), then install the package:
 
 ```bash
 sudo apt install sfg-contribution-tooling
 ```
 
-The package installs the tools listed in the table below to `/opt/sfg-contribution-tooling/bin/`, which is not on the `PATH`, the dprint plugins to `/opt/sfg-contribution-tooling/share/dprint/`, and the configuration files from [`config/`](config/) to `/opt/sfg-contribution-tooling/share/config/`.
-
 ### Editor & Repository Setup
 
-For each language the repository uses, install the extensions and copy the configuration files from [`config/`](config/) into the repository root:
+In the repository root, run:
+
+```bash
+sfg-contribution-tooling init
+```
+
+See `sfg-contribution-tooling init --help` for what it does and its options.
 
 | Language                  | Tools                      | Extensions                                                                       | Configuration Files                                                              | Language-Specific Style Guidelines |
 | ------------------------- | -------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
@@ -95,10 +122,10 @@ For each language the repository uses, install the extensions and copy the confi
 [ty]: https://marketplace.visualstudio.com/items?itemName=astral-sh.ty
 [bash-ide]: https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode
 
-Then merge [`.vscode/settings.json`](config/.vscode/settings.json) into the repository's `.vscode/settings.json`. Use the whole file in every repository. Settings for languages and extensions a repository does not use are ignored.
+The settings and extensions of each language are in [`languages.jsonc`](../src/sfg-contribution-tooling/opt/sfg-contribution-tooling/share/languages.jsonc), for reference only.
 
 > [!warning]
-> ty and Bash IDE look for `ty.toml` and `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace. If you open a parent directory, also copy `.shellcheckrc` to `~/.config/shellcheckrc`.
+> ty and Bash IDE look for `ty.toml` and `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace.
 
 > [!warning]
 > Configure each tool in exactly one place. Do not additionally add `[tool.ruff]`, `[tool.rumdl]` or `[tool.ty]` sections to a `pyproject.toml`: `ruff.toml`, `.rumdl.toml` and `ty.toml` take precedence and such sections are ignored.
