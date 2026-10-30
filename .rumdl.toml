@@ -11,5 +11,8 @@ extend-enable = [
     "MD095", # Report confusable non-ASCII characters in link destinations.
 ]
 
+[MD033]
+allowed-elements = ["no-markdown-equivalent"] # Allow HTML that has no Markdown equivalent.
+
 [MD059]
 prohibited-texts = ["click here", "link", "more"] # Allow "here" as link text.
