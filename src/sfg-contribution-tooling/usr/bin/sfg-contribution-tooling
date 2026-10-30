@@ -711,6 +711,17 @@ def run_update(args: argparse.Namespace, languages: dict[str, Language]) -> int:
     return 0
 
 
+class CommandHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    """Keeps the line breaks of the descriptions and examples, which are wrapped to fit 80 columns.
+
+    The help of the arguments is wrapped to the same width, as argparse otherwise fills the whole
+    terminal with it.
+    """
+
+    def __init__(self, prog: str) -> None:
+        super().__init__(prog, width=min(shutil.get_terminal_size().columns - 2, 79))
+
+
 def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog=program_name,
@@ -732,13 +743,11 @@ def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
         break_on_hyphens=False,
     )
 
-    # The raw formatter keeps the line breaks of the descriptions and examples, which are
-    # wrapped to fit 80 columns.
     init_parser = commands.add_parser(
         "init",
         usage="%(prog)s [-h] [directory] [--languages LANGUAGE ...]",
         help="create the missing configuration and VS Code files and check the existing ones",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=CommandHelpFormatter,
         description=textwrap.dedent("""\
             Copy the configuration files of the chosen languages into the directory and
             create .vscode/settings.json and .vscode/extensions.json. Set up all
@@ -779,7 +788,7 @@ def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
         + " " * len(f"usage: {program_name} update ")
         + "[--check]",
         help="merge the settings and extensions into existing VS Code files",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=CommandHelpFormatter,
         description=textwrap.dedent("""\
             Merge the settings and extensions of the chosen languages into existing
             settings.json, extensions.json and devcontainer.json files. Merge those of
