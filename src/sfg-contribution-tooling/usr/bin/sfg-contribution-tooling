@@ -1,0 +1,842 @@
+#!/usr/bin/python3
+"""Set up a repository for the SFG Autonomous Systems contribution guidelines in VS Code."""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import io
+import json
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import textwrap
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+program_name = "sfg-contribution-tooling"
+install_prefix = Path("/opt") / program_name
+languages_file = install_prefix / "share" / "languages.jsonc"
+config_directory = install_prefix / "share" / "config"
+dprint_binary = install_prefix / "bin" / "dprint"
+general_key = "general"
+indent = "    "
+
+# The kind of each VS Code file by its name, and where the settings and extensions go in it.
+vscode_file_kinds = {
+    "settings.json": "settings",
+    "extensions.json": "extensions",
+    "devcontainer.json": "devcontainer",
+    ".devcontainer.json": "devcontainer",
+}
+settings_paths = {
+    "settings": (),
+    "devcontainer": ("customizations", "vscode", "settings"),
+}
+extensions_paths = {
+    "extensions": ("recommendations",),
+    "devcontainer": ("customizations", "vscode", "extensions"),
+}
+
+# Whitespace up to a closing brace or bracket, which makes a preceding comma a trailing one.
+closing_pattern = re.compile(r"\s*[}\]]")
+
+
+class Error(Exception):
+    """An error that ends the command with a message instead of a traceback."""
+
+
+class ContainerError(Error):
+    """A container that the settings or extensions go into has the wrong type."""
+
+
+@dataclass
+class Language:
+    key: str
+    name: str
+    configuration_files: list[str]
+    extensions: list[str]
+    settings: dict[str, Any]
+
+
+@dataclass
+class Reference:
+    """What the chosen languages and the general entry set up, the general entry first."""
+
+    languages: list[Language]
+    settings: dict[str, Any]
+    extensions: list[str]
+    configuration_files: list[str]
+
+
+def display(path: Path) -> str:
+    """Return the path relative to the current directory, so printed commands work as printed."""
+    return os.path.relpath(path)
+
+
+def describe_error(error: Exception) -> str:
+    """Return the reason of a file error without the path, which the message already names."""
+    if isinstance(error, OSError) and error.strerror:
+        return error.strerror
+
+    return str(error)
+
+
+def read_bytes(path: Path) -> bytes:
+    try:
+        return path.read_bytes()
+    except OSError as error:
+        raise Error(f"{display(path)}: {describe_error(error)}") from None
+
+
+def read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        raise Error(f"{display(path)}: {describe_error(error)}") from None
+
+
+def string_end(text: str, start: int) -> int:
+    """Return the index after the string that starts with the quote at 'start'."""
+    index = start + 1
+
+    # Skips escaped characters, so an escaped quote does not end the string.
+    while index < len(text) and text[index] != '"':
+        index += 2 if text[index] == "\\" else 1
+
+    return index + 1
+
+
+def parse_jsonc(text: str, path: Path) -> tuple[Any, bool]:
+    """Parse JSON with comments and trailing commas, as VS Code allows.
+
+    Returns the value and whether the text had comments. Comments and trailing commas are replaced
+    by spaces, so the positions in parse errors stay correct.
+    """
+    text = text.removeprefix("\N{BYTE ORDER MARK}")
+    characters = list(text)
+    has_comments = False
+    index = 0
+
+    while index < len(text):
+        if text[index] == '"':
+            index = string_end(text, index)
+            continue
+
+        if text.startswith("//", index):
+            end = text.find("\n", index)
+            end = len(text) if end == -1 else end
+        elif text.startswith("/*", index):
+            end = text.find("*/", index + 2)
+
+            if end == -1:
+                raise Error(f"{display(path)}: unterminated comment")
+
+            end += 2
+        else:
+            index += 1
+            continue
+
+        # Keeps the line breaks of block comments.
+        for position in range(index, end):
+            if characters[position] != "\n":
+                characters[position] = " "
+
+        has_comments = True
+        index = end
+
+    text = "".join(characters)
+    index = 0
+
+    # Removes trailing commas in a second pass, as a comment may precede the closing bracket.
+    while index < len(text):
+        if text[index] == '"':
+            index = string_end(text, index)
+            continue
+
+        if text[index] == "," and closing_pattern.match(text, index + 1):
+            characters[index] = " "
+
+        index += 1
+
+    try:
+        return json.loads("".join(characters)), has_comments
+    except json.JSONDecodeError as error:
+        raise Error(f"{display(path)}: cannot be parsed: {error}") from None
+
+
+def format_key_path(key_path: tuple[str, ...]) -> str:
+    return ".".join(key_path)
+
+
+def to_display(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
+def same_value(first: Any, second: Any) -> bool:
+    """Compare two JSON values, telling apart values Python considers equal, such as true and 1."""
+    return json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
+
+
+def add_settings(
+    target: dict[str, Any],
+    source: dict[str, Any],
+    key_path: tuple[str, ...],
+    language: str,
+    origins: dict[tuple[str, ...], str],
+) -> None:
+    """Add the settings of one language, failing on a value another language sets differently."""
+    for key, value in source.items():
+        value_path = (*key_path, key)
+
+        if key not in target:
+            target[key] = copy.deepcopy(value)
+            origins[value_path] = language
+        elif isinstance(target[key], dict) and isinstance(value, dict):
+            add_settings(target[key], value, value_path, language, origins)
+        elif not same_value(target[key], value):
+            # The value came from the language that added it or one of its parent objects.
+            origin = next(
+                origins[value_path[:length]]
+                for length in range(len(value_path), 0, -1)
+                if value_path[:length] in origins
+            )
+            raise Error(
+                f"{languages_file}: {format_key_path(value_path)}: "
+                f"'{origin}' and '{language}' have different values"
+            )
+
+
+def combine_settings(languages: list[Language]) -> dict[str, Any]:
+    """Merge the settings of the languages, which must agree on every value they share."""
+    combined: dict[str, Any] = {}
+    origins: dict[tuple[str, ...], str] = {}
+
+    for language in languages:
+        add_settings(combined, language.settings, (), language.key, origins)
+
+    return combined
+
+
+def read_languages() -> dict[str, Language]:
+    """Read languages.jsonc and check that its languages agree on every setting they share."""
+    data, _ = parse_jsonc(read_text(languages_file), languages_file)
+
+    if not isinstance(data, dict) or general_key not in data:
+        raise Error(
+            f"{languages_file}: expected an object with a '{general_key}' entry"
+        )
+
+    languages: dict[str, Language] = {}
+
+    for key, entry in data.items():
+        try:
+            languages[key] = Language(
+                key,
+                entry["name"],
+                entry["configurationFiles"],
+                entry["extensions"],
+                entry["settings"],
+            )
+        except (KeyError, TypeError) as error:
+            raise Error(f"{languages_file}: {key}: invalid entry: {error}") from None
+
+    combine_settings(list(languages.values()))
+
+    return languages
+
+
+def build_reference(
+    languages: dict[str, Language], chosen: list[str] | None
+) -> Reference:
+    """Collect what the chosen languages, or all if none are chosen, set up."""
+    # The general entry comes first wherever it is in languages.jsonc.
+    selected = [languages[general_key]] + [
+        language
+        for key, language in languages.items()
+        if key != general_key and (chosen is None or key in chosen)
+    ]
+    extensions: dict[str, str] = {}
+
+    # Extension IDs are case-insensitive, so an extension of several languages is added once.
+    for language in selected:
+        for extension in language.extensions:
+            extensions.setdefault(extension.lower(), extension)
+
+    configuration_files = [
+        name for language in selected for name in language.configuration_files
+    ]
+
+    return Reference(
+        selected,
+        combine_settings(selected),
+        list(extensions.values()),
+        list(dict.fromkeys(configuration_files)),
+    )
+
+
+def to_json(value: Any, level: int = 0) -> str:
+    """Serialize a value with one line per object property.
+
+    dprint keeps objects on one line if they start on one line, but wraps arrays that are too long,
+    so only arrays are written on one line.
+    """
+    if isinstance(value, dict) and value:
+        properties = [
+            f"{indent * (level + 1)}{to_display(key)}: {to_json(item, level + 1)}"
+            for key, item in value.items()
+        ]
+        return "{\n" + ",\n".join(properties) + f"\n{indent * level}}}"
+
+    return to_display(value)
+
+
+def render_settings(reference: Reference) -> str:
+    """Serialize a created settings.json with a comment above the settings of each language.
+
+    Settings that languages give different values, which are merged objects such as
+    'files.exclude', go under the general settings. A setting that several languages repeat with
+    the same value, such as 'dprint.path', goes under the first of them.
+    """
+    general = reference.languages[0]
+    values: dict[str, list[Any]] = {}
+
+    for language in reference.languages:
+        for key, value in language.settings.items():
+            values.setdefault(key, []).append(value)
+
+    general_keys = {
+        key
+        for key, key_values in values.items()
+        if key in general.settings
+        or any(not same_value(value, key_values[0]) for value in key_values)
+    }
+    written_keys = set(general_keys)
+    lines: list[str] = []
+
+    for language in reference.languages:
+        if language is general:
+            keys = [key for key in reference.settings if key in general_keys]
+        else:
+            keys = [key for key in language.settings if key not in written_keys]
+            written_keys.update(keys)
+
+        if not keys:
+            continue
+
+        lines.append(f"{indent}// {language.name} Settings")
+        lines.extend(
+            f"{indent}{to_display(key)}: {to_json(reference.settings[key], 1)},"
+            for key in keys
+        )
+
+    # The general settings are never empty, so the last line is a setting.
+    lines[-1] = lines[-1].removesuffix(",")
+
+    return "{\n" + "\n".join(lines) + "\n}\n"
+
+
+def render_extensions(reference: Reference) -> str:
+    return to_json({"recommendations": reference.extensions}) + "\n"
+
+
+def format_json(path: Path, text: str) -> str:
+    """Format the text of a VS Code file with the packaged dprint, so it matches format on save."""
+    # The bare file name keeps the includes and excludes of dprint.jsonc from skipping the file.
+    command = [
+        str(dprint_binary),
+        "fmt",
+        "--stdin",
+        path.name,
+        "--config",
+        str(config_directory / "dprint.jsonc"),
+    ]
+
+    try:
+        result = subprocess.run(
+            command, input=text, capture_output=True, encoding="utf-8", check=False
+        )
+    except OSError as error:
+        raise Error(f"{dprint_binary}: {describe_error(error)}") from None
+
+    if result.returncode != 0:
+        raise Error(f"{display(path)}: dprint failed: {result.stderr.strip()}")
+
+    return result.stdout
+
+
+def type_name(value: Any) -> str:
+    if isinstance(value, dict):
+        return "an object"
+
+    if isinstance(value, list):
+        return "an array"
+
+    if isinstance(value, str):
+        return "a string"
+
+    if isinstance(value, bool):
+        return "a boolean"
+
+    if value is None:
+        return "null"
+
+    return "a number"
+
+
+def get_container(
+    root: dict[str, Any], key_path: tuple[str, ...], container_type: type, create: bool
+) -> Any:
+    """Return the container at the key path, checking its type and the types of its parents.
+
+    A missing container and its missing parents are added if 'create' is set, and returned empty
+    otherwise.
+    """
+    container: Any = root
+
+    for depth, key in enumerate(key_path):
+        expected_type = container_type if depth == len(key_path) - 1 else dict
+
+        if key not in container:
+            value = expected_type()
+
+            if create:
+                container[key] = value
+        else:
+            value = container[key]
+
+            if not isinstance(value, expected_type):
+                raise ContainerError(
+                    f"{format_key_path(key_path[: depth + 1])}: "
+                    f"expected {type_name(expected_type())}, found {type_name(value)}"
+                )
+
+        container = value
+
+    return container
+
+
+def find_containers(
+    kind: str, data: Any, create: bool
+) -> tuple[dict[str, Any] | None, list[Any] | None]:
+    """Return the object of the settings and the array of the extensions of a VS Code file.
+
+    Each is None if the kind of file does not have it.
+    """
+    if not isinstance(data, dict):
+        raise ContainerError(f"expected an object, found {type_name(data)}")
+
+    settings = None
+    extensions = None
+
+    if kind in settings_paths:
+        settings = get_container(data, settings_paths[kind], dict, create)
+
+    if kind in extensions_paths:
+        extensions = get_container(data, extensions_paths[kind], list, create)
+
+    return settings, extensions
+
+
+def missing_extensions(extensions: list[Any], reference: Reference) -> list[str]:
+    present = {
+        extension.lower() for extension in extensions if isinstance(extension, str)
+    }
+    return [
+        extension
+        for extension in reference.extensions
+        if extension.lower() not in present
+    ]
+
+
+def setting_differences(
+    settings: dict[str, Any], reference: dict[str, Any], key_path: tuple[str, ...]
+) -> list[str]:
+    """List the settings that are missing or have another value, comparing objects key by key."""
+    differences = []
+
+    for key, value in reference.items():
+        value_path = (*key_path, key)
+
+        if key not in settings:
+            differences.append(f"{format_key_path(value_path)}: missing")
+        elif isinstance(settings[key], dict) and isinstance(value, dict):
+            differences.extend(setting_differences(settings[key], value, value_path))
+        elif not same_value(settings[key], value):
+            differences.append(
+                f"{format_key_path(value_path)}: "
+                f"{to_display(settings[key])}, expected {to_display(value)}"
+            )
+
+    return differences
+
+
+def find_differences(kind: str, data: Any, reference: Reference) -> list[str]:
+    """List the differences of a parsed VS Code file from the reference, as 'key: difference'."""
+    try:
+        settings, extensions = find_containers(kind, data, create=False)
+    except ContainerError as error:
+        return [str(error)]
+
+    differences = []
+
+    if settings is not None:
+        differences.extend(
+            setting_differences(settings, reference.settings, settings_paths[kind])
+        )
+
+    if extensions is not None:
+        differences.extend(
+            f"{format_key_path(extensions_paths[kind])}: missing {to_display(extension)}"
+            for extension in missing_extensions(extensions, reference)
+        )
+
+    return differences
+
+
+def merge_settings(settings: dict[str, Any], reference: dict[str, Any]) -> None:
+    """Merge the reference into the settings: objects key by key, other values as a whole."""
+    for key, value in reference.items():
+        if isinstance(settings.get(key), dict) and isinstance(value, dict):
+            merge_settings(settings[key], value)
+        else:
+            settings[key] = copy.deepcopy(value)
+
+
+def report_differences(path: Path, differences: list[str]) -> None:
+    for difference in differences:
+        print(f"{display(path)}: {difference}", file=sys.stderr)
+
+
+def write_files(
+    files: dict[Path, str | bytes], verb: str, commented_files: list[Path] | None = None
+) -> None:
+    """Write the files and print a line for each, noting the files that lost their comments."""
+    for path, content in files.items():
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+            if isinstance(content, bytes):
+                path.write_bytes(content)
+            else:
+                path.write_text(content, encoding="utf-8")
+        except OSError as error:
+            raise Error(f"{display(path)}: {describe_error(error)}") from None
+
+        note = " and removed its comments" if path in (commented_files or []) else ""
+        print(f"{verb} {display(path)}{note}")
+
+
+def installed_extensions(code: str) -> set[str]:
+    """Return the lowercase IDs of the installed extensions, or none if 'code' cannot list them."""
+    try:
+        result = subprocess.run(
+            [code, "--list-extensions"],
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return set()
+
+    return {line.strip().lower() for line in result.stdout.splitlines()}
+
+
+def offer_extensions(reference: Reference) -> None:
+    """Install the extensions that are not installed yet with 'code', after asking."""
+    code = shutil.which("code")
+
+    if code is None:
+        print("Install the recommended extensions from VS Code.")
+        return
+
+    installed = installed_extensions(code)
+    extensions = [
+        extension
+        for extension in reference.extensions
+        if extension.lower() not in installed
+    ]
+
+    if not extensions:
+        return
+
+    command = ["code"]
+
+    for extension in extensions:
+        command.extend(["--install-extension", extension])
+
+    # Never installs without asking, so a CI job or a 'postCreateCommand' only gets the command.
+    if not sys.stdin.isatty():
+        print(f"To install the extensions, run: {shlex.join(command)}")
+        return
+
+    try:
+        answer = input(
+            f"Install {', '.join(extensions)} with 'code --install-extension'? [y/N] "
+        )
+    except (EOFError, KeyboardInterrupt):
+        print()
+        answer = ""
+
+    if answer.strip().lower() not in ("y", "yes"):
+        return
+
+    if subprocess.run([code, *command[1:]], check=False).returncode != 0:
+        raise Error("installing the extensions failed")
+
+
+def run_init(args: argparse.Namespace, languages: dict[str, Language]) -> int:
+    directory = Path(args.directory)
+
+    if not directory.is_dir():
+        raise Error(f"{display(directory)}: not a directory")
+
+    reference = build_reference(languages, args.languages)
+    files: dict[Path, str | bytes] = {}
+    differing_files = []
+
+    # Repositories may adjust their configuration files, so differences are only warnings.
+    for name in reference.configuration_files:
+        source = config_directory / name
+        target = directory / name
+        content = read_bytes(source)
+
+        if not target.exists():
+            files[target] = content
+        elif read_bytes(target) != content:
+            print(f"{display(target)}: differs from {source}", file=sys.stderr)
+
+    vscode_files = [
+        (directory / ".vscode" / "settings.json", render_settings),
+        (directory / ".vscode" / "extensions.json", render_extensions),
+    ]
+
+    for target, render in vscode_files:
+        if not target.exists():
+            files[target] = format_json(target, render(reference))
+            continue
+
+        data, _ = parse_jsonc(read_text(target), target)
+        differences = find_differences(vscode_file_kinds[target.name], data, reference)
+        report_differences(target, differences)
+
+        if differences:
+            differing_files.append(target)
+
+    write_files(files, "Created")
+
+    if vscode_files[1][0] in files:
+        offer_extensions(reference)
+
+    if not differing_files:
+        return 0
+
+    command = [program_name, "update", *[display(path) for path in differing_files]]
+
+    if args.languages:
+        command.extend(["--languages", *dict.fromkeys(args.languages)])
+
+    print(
+        f"To merge the settings and extensions, run: {shlex.join(command)}",
+        file=sys.stderr,
+    )
+
+    return 1
+
+
+def run_update(args: argparse.Namespace, languages: dict[str, Language]) -> int:
+    reference = build_reference(languages, args.languages)
+    unique_paths: dict[Path, Path] = {}
+
+    for file in args.files:
+        unique_paths.setdefault(Path(file).resolve(), Path(file))
+
+    paths = list(unique_paths.values())
+
+    for path in paths:
+        if path.name not in vscode_file_kinds:
+            raise Error(
+                f"{display(path)}: expected a file named "
+                "settings.json, extensions.json, devcontainer.json or .devcontainer.json"
+            )
+
+    files: dict[Path, str | bytes] = {}
+    commented_files: list[Path] = []
+    has_differences = False
+
+    # Parses, merges and formats every file before writing any, so a failure leaves all unchanged.
+    for path in paths:
+        kind = vscode_file_kinds[path.name]
+        data, has_comments = parse_jsonc(read_text(path), path)
+        differences = find_differences(kind, data, reference)
+
+        if not differences:
+            continue
+
+        has_differences = True
+
+        if args.check:
+            report_differences(path, differences)
+            continue
+
+        try:
+            settings, extensions = find_containers(kind, data, create=True)
+        except ContainerError as error:
+            raise Error(f"{display(path)}: {error}") from None
+
+        if settings is not None:
+            merge_settings(settings, reference.settings)
+
+        if extensions is not None:
+            extensions.extend(missing_extensions(extensions, reference))
+
+        files[path] = format_json(path, to_json(data) + "\n")
+
+        if has_comments:
+            commented_files.append(path)
+
+    if args.check:
+        return 1 if has_differences else 0
+
+    write_files(files, "Updated", commented_files)
+
+    # The Dev Containers extension installs the extensions of a devcontainer.json itself.
+    if any(vscode_file_kinds[path.name] == "extensions" for path in files):
+        offer_extensions(reference)
+
+    return 0
+
+
+def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog=program_name,
+        description=__doc__,
+        epilog=f"For details, run '{program_name} COMMAND --help'.",
+    )
+    commands = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
+    languages_help = (
+        "(default: all); takes all following values, "
+        "so give it after the positional arguments"
+    )
+
+    # Lists the languages in the epilog, as the help of an option breaks 'github-actions' apart.
+    languages_epilog = "languages:\n" + textwrap.fill(
+        ", ".join(language_keys),
+        width=79,
+        initial_indent="  ",
+        subsequent_indent="  ",
+        break_on_hyphens=False,
+    )
+
+    # The raw formatter keeps the line breaks of the descriptions and examples, which are
+    # wrapped to fit 80 columns.
+    init_parser = commands.add_parser(
+        "init",
+        usage="%(prog)s [-h] [directory] [--languages LANGUAGE ...]",
+        help="create the missing configuration and VS Code files and check the existing ones",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent("""\
+            Copy the configuration files of the chosen languages into the directory and
+            create .vscode/settings.json and .vscode/extensions.json. Set up all
+            languages unless --languages is given.
+
+            Existing files are never changed, only checked. For a configuration file
+            that differs, a warning names the reference to compare it with. For VS Code
+            files that differ, the update command to run is printed, and the exit
+            status is 1.
+
+            After creating .vscode/extensions.json, offer to install the extensions.
+        """),
+        epilog=languages_epilog
+        + textwrap.dedent(f"""
+
+            example:
+              {program_name} init --languages python markdown
+        """),
+    )
+    init_parser.add_argument(
+        "directory",
+        nargs="?",
+        default=".",
+        help="repository root (default: current directory)",
+    )
+    init_parser.add_argument(
+        "--languages",
+        nargs="+",
+        choices=language_keys,
+        metavar="LANGUAGE",
+        help=f"languages to set up {languages_help}",
+    )
+
+    update_parser = commands.add_parser(
+        "update",
+        # Wrapped like argparse wraps a generated usage, which it does not do for a given one.
+        usage="%(prog)s [-h] FILE ... [--languages LANGUAGE ...]\n"
+        + " " * len(f"usage: {program_name} update ")
+        + "[--check]",
+        help="merge the settings and extensions into existing VS Code files",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent("""\
+            Merge the settings and extensions of the chosen languages into existing
+            settings.json, extensions.json and devcontainer.json files. Merge those of
+            all languages unless --languages is given.
+
+            Changed files lose their comments, run with --check first to list the
+            differences without writing anything.
+
+            After updating an extensions.json, offer to install the extensions.
+        """),
+        epilog=languages_epilog
+        + textwrap.dedent(f"""
+
+            examples:
+              {program_name} update .devcontainer/devcontainer.json --check
+              {program_name} update .devcontainer/devcontainer.json
+        """),
+    )
+    update_parser.add_argument(
+        "files",
+        nargs="+",
+        metavar="FILE",
+        help="settings.json, extensions.json, devcontainer.json or .devcontainer.json file",
+    )
+    update_parser.add_argument(
+        "--languages",
+        nargs="+",
+        choices=language_keys,
+        metavar="LANGUAGE",
+        help=f"languages whose settings and extensions are merged {languages_help}",
+    )
+    update_parser.add_argument(
+        "--check",
+        action="store_true",
+        help="only list the differences and exit with status 1 if there are any",
+    )
+
+    return parser.parse_args()
+
+
+def main() -> int:
+    # Keeps the order of stdout and stderr in logs, where stdout is not a terminal.
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(line_buffering=True)
+
+    try:
+        languages = read_languages()
+        args = parse_arguments([key for key in languages if key != general_key])
+
+        if args.command == "init":
+            return run_init(args, languages)
+
+        return run_update(args, languages)
+    except Error as error:
+        print(f"Error: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

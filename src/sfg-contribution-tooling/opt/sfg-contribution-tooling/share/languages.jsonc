@@ -1,0 +1,141 @@
+// Settings, configuration files and extensions that sfg-contribution-tooling sets up, keyed by the
+// value of its --languages option. "general" holds the settings that are always included.
+//
+// name: The name in the "// <name> Settings" comments of a created settings.json.
+// configurationFiles: The files copied from /opt/sfg-contribution-tooling/share/config/.
+// extensions: The VS Code extensions added to the recommendations.
+// settings: The VS Code settings. A value repeated in several languages, such as "dprint.path",
+//           must be the same in each of them.
+{
+    "general": {
+        "name": "General",
+        "configurationFiles": [],
+        "extensions": [],
+        "settings": {
+            "editor.formatOnSave": true
+        }
+    },
+    "c-cpp": {
+        "name": "C and C++",
+        "configurationFiles": [".clang-format"],
+        "extensions": ["ms-vscode.cpptools"],
+        "settings": {
+            "C_Cpp.clang_format_path": "/opt/sfg-contribution-tooling/bin/clang-format",
+            "[c][cpp]": {
+                "editor.defaultFormatter": "ms-vscode.cpptools"
+            }
+        }
+    },
+    "cmake": {
+        "name": "CMake",
+        "configurationFiles": [],
+        "extensions": ["josetr.cmake-language-support-vscode"],
+        "settings": {
+            "[cmake]": {
+                "editor.defaultFormatter": "josetr.cmake-language-support-vscode"
+            }
+        }
+    },
+    "dockerfile": {
+        "name": "Dockerfile",
+        "configurationFiles": ["dprint.jsonc"],
+        "extensions": ["dprint.dprint"],
+        "settings": {
+            "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+            "[dockerfile][dockercompose]": {
+                "editor.defaultFormatter": "dprint.dprint"
+            }
+        }
+    },
+    "github-actions": {
+        "name": "GitHub Actions",
+        "configurationFiles": [],
+        "extensions": ["jimeh.actionlint"],
+        "settings": {
+            "actionlint.executable": "/opt/sfg-contribution-tooling/bin/actionlint",
+            "actionlint.shellcheckExecutable": "/opt/sfg-contribution-tooling/bin/shellcheck"
+        }
+    },
+    "json": {
+        "name": "JSON",
+        "configurationFiles": ["dprint.jsonc"],
+        "extensions": ["dprint.dprint"],
+        "settings": {
+            "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+            "[json][jsonc]": {
+                "editor.defaultFormatter": "dprint.dprint"
+            }
+        }
+    },
+    "markdown": {
+        "name": "Markdown",
+        "configurationFiles": [".rumdl.toml"],
+        "extensions": ["rvben.rumdl"],
+        "settings": {
+            "files.exclude": {
+                "**/.rumdl_cache": true
+            },
+            "rumdl.server.path": "/opt/sfg-contribution-tooling/bin/rumdl",
+            "[markdown]": {
+                "editor.defaultFormatter": "rvben.rumdl"
+            }
+        }
+    },
+    "python": {
+        "name": "Python",
+        "configurationFiles": ["ruff.toml", "ty.toml"],
+        "extensions": ["ms-python.python", "charliermarsh.ruff", "astral-sh.ty"],
+        "settings": {
+            "files.exclude": {
+                "**/.ruff_cache": true
+            },
+            "python.languageServer": "Pylance",
+            "ruff.path": ["/opt/sfg-contribution-tooling/bin/ruff"],
+            "ty.path": ["/opt/sfg-contribution-tooling/bin/ty"],
+            "ty.disableLanguageServices": true,
+            "[python]": {
+                "editor.defaultFormatter": "charliermarsh.ruff",
+                "editor.codeActionsOnSave": {
+                    "source.organizeImports.ruff": "explicit"
+                }
+            }
+        }
+    },
+    "shell": {
+        "name": "Shell",
+        "configurationFiles": [".editorconfig", ".shellcheckrc"],
+        "extensions": ["mads-hartmann.bash-ide-vscode"],
+        "settings": {
+            "bashIde.shellcheckPath": "/opt/sfg-contribution-tooling/bin/shellcheck",
+            "bashIde.shfmt.path": "/opt/sfg-contribution-tooling/bin/shfmt",
+            "[shellscript]": {
+                "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode",
+                "editor.detectIndentation": false,
+                "editor.insertSpaces": true,
+                "editor.tabSize": 4
+            }
+        }
+    },
+    "toml": {
+        "name": "TOML",
+        "configurationFiles": ["dprint.jsonc"],
+        "extensions": ["dprint.dprint"],
+        "settings": {
+            "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+            "[toml]": {
+                "editor.defaultFormatter": "dprint.dprint"
+            }
+        }
+    },
+    "yaml": {
+        "name": "YAML",
+        "configurationFiles": ["dprint.jsonc"],
+        "extensions": ["dprint.dprint"],
+        "settings": {
+            "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+            "[yaml]": {
+                "editor.defaultFormatter": "dprint.dprint"
+            }
+        }
+    }
+}

@@ -48,10 +48,10 @@ jobs:
           current_version="$(sed -n 's/^Version: //p' "${control_file}")"
           base_version="$(git show "${BASE_SHA}:${control_file}" 2>/dev/null | sed -n 's/^Version: //p' || true)"
           if [[ "${current_version}" == "${base_version}" ]]; then
-            echo "Version ${current_version} has not changed."
-            echo "changed=false" >> "${GITHUB_OUTPUT}"
+              echo "Version ${current_version} has not changed."
+              echo "changed=false" >>"${GITHUB_OUTPUT}"
           else
-            echo "changed=true" >> "${GITHUB_OUTPUT}"
+              echo "changed=true" >>"${GITHUB_OUTPUT}"
           fi
 
   build:
@@ -122,15 +122,103 @@ jobs:
       - name: Run Tools
         run: |
           for tool in "/opt/sfg-contribution-tooling/bin/"*; do
-            echo "Running '${tool} --version'."
-            "${tool}" --version
+              echo "Running '${tool} --version'."
+              "${tool}" --version
           done
 
       # Fails if the reference config names a plugin the package does not install.
       - name: Load dprint Plugins
         run: |
           /opt/sfg-contribution-tooling/bin/dprint output-resolved-config \
-            --config /opt/sfg-contribution-tooling/share/config/dprint.jsonc
+              --config /opt/sfg-contribution-tooling/share/config/dprint.jsonc
+
+      - name: Test init in an Empty Directory
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir init && cd init
+          sfg-contribution-tooling init
+          checksums="$(find . -type f -exec sha256sum {} + | sort)"
+          output="$(sfg-contribution-tooling init)"
+          [[ -z "${output}" ]]
+          [[ "$(find . -type f -exec sha256sum {} + | sort)" == "${checksums}" ]]
+
+      - name: Test init with a Differing Configuration File
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir init-config && cd init-config
+          sfg-contribution-tooling init --languages python
+          echo 'target-version = "py310"' >>ruff.toml
+          sfg-contribution-tooling init --languages python 2>errors
+          cat errors
+          grep -qF "ruff.toml: differs from /opt/sfg-contribution-tooling/share/config/ruff.toml" errors
+
+      - name: Test init with Files Excluded by Several Languages
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir init-exclude && cd init-exclude
+          sfg-contribution-tooling init --languages python markdown
+          general="$(sed -n '\|// General Settings|,\|// Markdown Settings|p' .vscode/settings.json)"
+          grep -qF '"**/.ruff_cache": true' <<<"${general}"
+          grep -qF '"**/.rumdl_cache": true' <<<"${general}"
+
+      # A setting that several languages repeat with the same value stays with the first of them.
+      - name: Test init with a Setting Repeated by Several Languages
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir init-repeat && cd init-repeat
+          sfg-contribution-tooling init --languages json toml
+          general="$(sed -n '\|// General Settings|,\|// JSON Settings|p' .vscode/settings.json)"
+          json="$(sed -n '\|// JSON Settings|,\|// TOML Settings|p' .vscode/settings.json)"
+          grep -qF '"dprint.path"' <<<"${json}"
+
+          if grep -qF '"dprint.path"' <<<"${general}"; then
+              exit 1
+          fi
+
+      - name: Test update
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir -p update/.vscode && cd update
+          echo '{"editor.formatOnSave": false}' >.vscode/settings.json
+          cp .vscode/settings.json original
+          status=0
+          sfg-contribution-tooling update .vscode/settings.json --check || status=$?
+          [[ "${status}" == 1 ]]
+          cmp original .vscode/settings.json
+          sfg-contribution-tooling update .vscode/settings.json
+
+          if cmp -s original .vscode/settings.json; then
+              exit 1
+          fi
+
+          sfg-contribution-tooling update .vscode/settings.json --check
+          cp .vscode/settings.json updated
+          output="$(sfg-contribution-tooling update .vscode/settings.json)"
+          [[ -z "${output}" ]]
+          cmp updated .vscode/settings.json
+
+      - name: Test Reading Comments and Trailing Commas
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir -p comments/.vscode && cd comments
+          cat >.vscode/settings.json <<'EOF'
+          {
+              // Line comment with "quotes" and /* a block marker
+              "editor.formatOnSave": true, /* Block comment
+              over two lines */
+              "[cmake]": {
+                  "editor.defaultFormatter": "josetr.cmake-language-support-vscode",
+              },
+              "example.url": "https://example.com/*not a comment*/", // Trailing comma follows.
+          }
+          EOF
+          sfg-contribution-tooling update .vscode/settings.json --languages cmake --check
+          sfg-contribution-tooling update .vscode/settings.json --languages python
+          grep -qF '"example.url": "https://example.com/*not a comment*/"' .vscode/settings.json
+
+          if grep -qF "comment" <(sed 's|/\*not a comment\*/||' .vscode/settings.json); then
+              exit 1
+          fi
 
   merge:
     name: Merge Packages

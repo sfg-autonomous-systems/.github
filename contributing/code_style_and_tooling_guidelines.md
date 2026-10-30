@@ -69,11 +69,15 @@ All formatters and linters come in the `sfg-contribution-tooling` package. [Add 
 sudo apt install sfg-contribution-tooling
 ```
 
-The package installs the tools listed in the table below to `/opt/sfg-contribution-tooling/bin/`, which is not on the `PATH`, the dprint plugins to `/opt/sfg-contribution-tooling/share/dprint/`, and the configuration files from [`config/`](config/) to `/opt/sfg-contribution-tooling/share/config/`.
-
 ### Editor & Repository Setup
 
-For each language the repository uses, install the extensions and copy the configuration files from [`config/`](config/) into the repository root:
+In the repository root, run:
+
+```bash
+sfg-contribution-tooling init
+```
+
+See `sfg-contribution-tooling init --help` for what it does and its options.
 
 | Language                  | Tools                      | Extensions                                                                       | Configuration Files                                                              | Language-Specific Style Guidelines |
 | ------------------------- | -------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
@@ -95,10 +99,10 @@ For each language the repository uses, install the extensions and copy the confi
 [ty]: https://marketplace.visualstudio.com/items?itemName=astral-sh.ty
 [bash-ide]: https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode
 
-Then merge [`.vscode/settings.json`](config/.vscode/settings.json) into the repository's `.vscode/settings.json`. Use the whole file in every repository. Settings for languages and extensions a repository does not use are ignored.
+The settings and extensions of each language are in [`languages.jsonc`](../src/sfg-contribution-tooling/opt/sfg-contribution-tooling/share/languages.jsonc), for reference only.
 
 > [!warning]
-> ty and Bash IDE look for `ty.toml` and `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace. If you open a parent directory, also copy `.shellcheckrc` to `~/.config/shellcheckrc`.
+> ty and Bash IDE look for `ty.toml` and `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace.
 
 > [!warning]
 > Configure each tool in exactly one place. Do not additionally add `[tool.ruff]`, `[tool.rumdl]` or `[tool.ty]` sections to a `pyproject.toml`: `ruff.toml`, `.rumdl.toml` and `ty.toml` take precedence and such sections are ignored.
