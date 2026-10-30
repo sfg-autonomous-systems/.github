@@ -125,6 +125,12 @@ jobs:
             "${tool}" --version
           done
 
+      # Fails if the reference config names a plugin the package does not install.
+      - name: Load dprint Plugins
+        run: |
+          /opt/sfg-contribution-tooling/bin/dprint output-resolved-config \
+            --config /opt/sfg-contribution-tooling/share/config/dprint.jsonc
+
   merge:
     name: Merge Packages
     needs:

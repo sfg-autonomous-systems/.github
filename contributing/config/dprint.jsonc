@@ -1,0 +1,14 @@
+{
+    "json": {
+        "indentWidth": 4 // Match the VS Code default.
+    },
+    "toml": {
+        "indentWidth": 4 // Match the indentation of other languages.
+    },
+    "plugins": [
+        "/opt/sfg-contribution-tooling/share/dprint/dockerfile.wasm",
+        "/opt/sfg-contribution-tooling/share/dprint/json.wasm",
+        "/opt/sfg-contribution-tooling/share/dprint/toml.wasm",
+        "/opt/sfg-contribution-tooling/share/dprint/yaml.wasm"
+    ]
+}

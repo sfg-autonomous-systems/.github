@@ -5,10 +5,16 @@
 # binary: The binary the wheel ships, as a glob within the wheel.
 # source_build: Whether the package may be built from its sdist. Defaults to false, so the
 #               package must come as a wheel.
+#
+# The wheels are pinned by version only, as PyPI does not allow replacing an uploaded file.
 
 [clang-format]
 version = "23.1.0"
 binary = "clang_format/data/bin/clang-format"
+
+[dprint-py]
+version = "0.64.3.0"
+binary = "dprint_py-*.data/scripts/dprint"
 
 [ruff]
 version = "0.17.2"
@@ -32,3 +38,31 @@ binary = "shfmt_py-*.data/scripts/shfmt"
 [ty]
 version = "0.0.94"
 binary = "ty-*.data/scripts/ty"
+
+# dprint plugins, keyed by the name of their file in /opt/sfg-contribution-tooling/share/dprint.
+# The plugins are WebAssembly, so the same files are installed on every architecture.
+#
+# version: The pinned version of the plugin.
+# url: The download URL, with {version} replaced by the version.
+# sha256: The checksum of the downloaded file. Unlike PyPI, the plugin URLs do not
+#         guarantee that their content never changes.
+
+[dprint-plugins.dockerfile]
+version = "0.7.0"
+url = "https://plugins.dprint.dev/dockerfile-{version}.wasm"
+sha256 = "04e0bef5fb60355247da7937af0df9641bf93922c60aaa19cc94ca141e293d1d"
+
+[dprint-plugins.json]
+version = "0.25.2"
+url = "https://plugins.dprint.dev/json-{version}.wasm"
+sha256 = "811ca4c6f732bcd6f707bc2f42d42395bb4127cdf829960cf628a18fc149777e"
+
+[dprint-plugins.toml]
+version = "0.9.0"
+url = "https://plugins.dprint.dev/toml-{version}.wasm"
+sha256 = "776e088ed4255a51a80e3640e5fd20b15661147e86df3e99611aaa37e9c59852"
+
+[dprint-plugins.yaml]
+version = "0.6.0"
+url = "https://plugins.dprint.dev/g-plane/pretty_yaml-v{version}.wasm"
+sha256 = "40a2fdda7040317eb1b23520f3a00769a5571eedb049c4ca9175c1b9eeba01ae"

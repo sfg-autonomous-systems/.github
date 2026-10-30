@@ -4,11 +4,38 @@ Source: https://github.com/sfg-autonomous-systems/.github
 Comment: The binaries are extracted unmodified from the wheels of the tool
  versions listed in the package description (dpkg -s sfg-contribution-tooling).
  The license files shipped in those wheels are installed next to this file.
+ The dprint plugins in opt/sfg-contribution-tooling/share/dprint are the
+ unmodified WebAssembly files of the plugin versions listed there as well.
 
 Files: opt/sfg-contribution-tooling/bin/clang-format
 Copyright: LLVM Project contributors
 License: Apache-2.0 WITH LLVM-exception
 Comment: Source: https://github.com/llvm/llvm-project
+
+Files: opt/sfg-contribution-tooling/bin/dprint
+Copyright: 2019 David Sherret
+License: MIT
+Comment: Source: https://github.com/dprint/dprint
+
+Files: opt/sfg-contribution-tooling/share/dprint/dockerfile.wasm
+Copyright: 2021 David Sherret
+License: MIT
+Comment: Source: https://github.com/dprint/dprint-plugin-dockerfile
+
+Files: opt/sfg-contribution-tooling/share/dprint/json.wasm
+Copyright: 2020 David Sherret
+License: MIT
+Comment: Source: https://github.com/dprint/dprint-plugin-json
+
+Files: opt/sfg-contribution-tooling/share/dprint/toml.wasm
+Copyright: 2021-2023 David Sherret
+License: MIT
+Comment: Source: https://github.com/dprint/dprint-plugin-toml
+
+Files: opt/sfg-contribution-tooling/share/dprint/yaml.wasm
+Copyright: 2024-present Pig Fang
+License: MIT
+Comment: Source: https://github.com/g-plane/pretty_yaml
 
 Files: opt/sfg-contribution-tooling/bin/ruff
 Copyright: 2022 Charles Marsh
