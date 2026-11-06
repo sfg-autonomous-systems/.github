@@ -24,54 +24,19 @@ if not pins:
     sys.exit(1)
 ```
 
-### Empty Lines Around Control Flow
-
-```mermaid
-%%{init: {"flowchart": {"defaultRenderer": "elk"}}}%%
-
-flowchart LR
-    A["Control Flow Statement"] --> B{First statement directly inside another block?}
-    B -- Yes --> C[No empty line before.]
-    B -- No --> D[Empty line before.]
-    A --> E{Body followed by another part, such as else or except?}
-    E -- Yes --> F[No empty line after.]
-    E -- No --> G[Empty line after.]
-```
-
-#### Example
-
-```python
-total = 0
-
-for row in rows:
-    for cell in row:
-        if cell is None:
-            continue
-
-        total += cell
-
-if total > limit:
-    print("The total exceeds the limit.")
-else:
-    print("The total is within the limit.")
-
-print(f"Total: {total}")
-```
-
 ## Tooling & Editor Configuration
 
 We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary IDE. To ensure everyone's code is formatted identically and automatically upon saving, you must set up the tools and editor as described below.
 
 ### Tools
 
-[![Version][version-badge]][control] [![Build][build-badge]][build] [![Ubuntu][ubuntu-badge]][apt-repo] [![Architectures][architectures-badge]][workflow]
+[![Version][version-badge]][control] [![Ubuntu][ubuntu-badge]][apt-repo] [![Build][build-badge]][build]
 
 [![actionlint-py][actionlint-py-badge]][tools] [![clang-format][clang-format-badge]][tools] [![dprint-py][dprint-py-badge]][tools] [![ruff][ruff-badge]][tools] [![rumdl][rumdl-badge]][tools] [![shellcheck-py][shellcheck-py-badge]][tools] [![shfmt-py][shfmt-py-badge]][tools] [![ty][ty-badge]][tools]
 
 [version-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling%2FDEBIAN%2Fcontrol&query=%24.Version&label=sfg-contribution-tooling&color=A81D33&logo=debian&logoColor=white
 [build-badge]: https://img.shields.io/github/actions/workflow/status/sfg-autonomous-systems/.github/build_and_submit_packages.yaml?branch=main&label=build&logo=githubactions&logoColor=white
 [ubuntu-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2F.github%2Fworkflows%2Fbuild_and_submit_packages.yaml&query=%24.jobs.submit.strategy.matrix.distribution%5B*%5D&label=Ubuntu&color=E95420&logo=ubuntu&logoColor=white
-[architectures-badge]: https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2F.github%2Fworkflows%2Fbuild_and_submit_packages.yaml&query=%24.jobs.build.strategy.matrix.include%5B*%5D.architecture&label=architectures&color=blue
 [actionlint-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27actionlint-py%27%5D.version&label=actionlint-py&color=informational
 [clang-format-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27clang-format%27%5D.version&label=clang-format&color=informational
 [dprint-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27dprint-py%27%5D.version&label=dprint-py&color=informational
@@ -80,6 +45,7 @@ We use **[Visual Studio Code](https://code.visualstudio.com/)** as our primary I
 [shellcheck-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27shellcheck-py%27%5D.version&label=shellcheck-py&color=informational
 [shfmt-py-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24%5B%27shfmt-py%27%5D.version&label=shfmt-py&color=informational
 [ty-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsfg-autonomous-systems%2F.github%2Fmain%2Fsrc%2Fsfg-contribution-tooling-tools.toml&query=%24.ty.version&label=ty&color=informational
+
 [control]: ../src/sfg-contribution-tooling/DEBIAN/control
 [build]: https://github.com/sfg-autonomous-systems/.github/actions/workflows/build_and_submit_packages.yaml?query=branch%3Amain
 [apt-repo]: https://github.com/sfg-autonomous-systems/sfg_apt_repo
