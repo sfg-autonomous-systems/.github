@@ -4,7 +4,7 @@ import os
 from typing import TYPE_CHECKING
 
 from sfg_contribution_tooling import files, jsonc
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 from sfg_contribution_tooling.language_setup import LanguageSetup
 from sfg_contribution_tooling.vscode.vscode_setup import VsCodeSetup
 
@@ -17,6 +17,10 @@ class LanguageSetups:
     """Language setups in the order of the data file, the general setup first."""
 
     _GENERAL_KEY = "general"
+
+    @property
+    def general(self) -> LanguageSetup:
+        return self._setups[0]
 
     def __init__(self, setups: list[LanguageSetup]) -> None:
         self._setups = setups
@@ -51,10 +55,6 @@ class LanguageSetups:
         VsCodeSetup.combine(setups)
 
         return cls(setups)
-
-    @property
-    def general(self) -> LanguageSetup:
-        return self._setups[0]
 
     def list_selectable_keys(self) -> list[str]:
         """Return the keys of the setups the --languages option can choose."""

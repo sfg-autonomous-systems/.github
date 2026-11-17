@@ -4,7 +4,7 @@ import json
 import re
 from typing import Any
 
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 
 _INDENT = "    "
 
@@ -116,22 +116,19 @@ def are_equal(first: Any, second: Any) -> bool:
 
 
 def describe_type(value: Any) -> str:
-    if isinstance(value, dict):
-        return "an object"
-
-    if isinstance(value, list):
-        return "an array"
-
-    if isinstance(value, str):
-        return "a string"
-
-    if isinstance(value, bool):
-        return "a boolean"
-
-    if value is None:
-        return "null"
-
-    return "a number"
+    match value:
+        case dict():
+            return "an object"
+        case list():
+            return "an array"
+        case str():
+            return "a string"
+        case bool():
+            return "a boolean"
+        case None:
+            return "null"
+        case _:
+            return "a number"
 
 
 def format_key_path(key_path: tuple[str, ...]) -> str:

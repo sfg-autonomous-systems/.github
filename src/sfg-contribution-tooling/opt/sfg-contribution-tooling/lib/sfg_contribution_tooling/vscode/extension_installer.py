@@ -6,7 +6,7 @@ import subprocess
 import sys
 from typing import TYPE_CHECKING
 
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 
 if TYPE_CHECKING:
     from sfg_contribution_tooling.vscode.vscode_setup import VsCodeSetup

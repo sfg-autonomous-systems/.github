@@ -4,7 +4,7 @@ import enum
 import os
 from typing import TYPE_CHECKING
 
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -20,36 +20,37 @@ class FileKind(enum.Enum):
     @property
     def settings_path(self) -> tuple[str, ...] | None:
         """Return the key path of the settings object, or None if the file has no settings."""
-        return _SETTINGS_PATHS.get(self)
+        match self:
+            case FileKind.Settings:
+                return ()
+            case FileKind.Extensions:
+                return None
+            case FileKind.Devcontainer:
+                return ("customizations", "vscode", "settings")
 
     @property
     def extensions_path(self) -> tuple[str, ...] | None:
         """Return the key path of the extensions array, or None if the file has no extensions."""
-        return _EXTENSIONS_PATHS.get(self)
+        match self:
+            case FileKind.Settings:
+                return None
+            case FileKind.Extensions:
+                return ("recommendations",)
+            case FileKind.Devcontainer:
+                return ("customizations", "vscode", "extensions")
 
     @classmethod
     def from_path(cls, path: Path) -> FileKind:
         """Return the kind of a file by its name."""
-        try:
-            return _FILE_NAMES[path.name]
-        except KeyError:
-            raise Error(
-                f"{os.path.relpath(path)}: expected a file named "
-                "settings.json, extensions.json, devcontainer.json or .devcontainer.json"
-            ) from None
-
-
-_FILE_NAMES = {
-    "settings.json": FileKind.Settings,
-    "extensions.json": FileKind.Extensions,
-    "devcontainer.json": FileKind.Devcontainer,
-    ".devcontainer.json": FileKind.Devcontainer,
-}
-_SETTINGS_PATHS: dict[FileKind, tuple[str, ...]] = {
-    FileKind.Settings: (),
-    FileKind.Devcontainer: ("customizations", "vscode", "settings"),
-}
-_EXTENSIONS_PATHS: dict[FileKind, tuple[str, ...]] = {
-    FileKind.Extensions: ("recommendations",),
-    FileKind.Devcontainer: ("customizations", "vscode", "extensions"),
-}
+        match path.name:
+            case "settings.json":
+                return FileKind.Settings
+            case "extensions.json":
+                return FileKind.Extensions
+            case "devcontainer.json" | ".devcontainer.json":
+                return FileKind.Devcontainer
+            case _:
+                raise Error(
+                    f"{os.path.relpath(path)}: expected a file named "
+                    "settings.json, extensions.json, devcontainer.json or .devcontainer.json"
+                )

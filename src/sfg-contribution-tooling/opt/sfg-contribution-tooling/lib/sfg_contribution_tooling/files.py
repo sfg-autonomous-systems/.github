@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 
 
 def describe_error(error: Exception) -> str:

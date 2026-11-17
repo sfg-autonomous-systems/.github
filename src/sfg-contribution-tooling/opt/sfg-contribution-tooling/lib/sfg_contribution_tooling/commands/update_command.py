@@ -22,14 +22,14 @@ class UpdateCommand(Command):
     name = "update"
     help = "merge the settings and extensions into existing VS Code files"
     description = textwrap.dedent("""\
-        Merge the settings and extensions of the chosen languages into existing
-        settings.json, extensions.json and devcontainer.json files. Merge those of
+        Merges the settings and extensions of the chosen languages into existing
+        settings.json, extensions.json and devcontainer.json files. Merges those of
         all languages unless --languages is given.
 
-        Changed files lose their comments, run with --check first to list the
+        Changed files lose their comments. Running with --check first lists the
         differences without writing anything.
 
-        After updating an extensions.json, offer to install the extensions.
+        After updating an extensions.json, offers to install the extensions.
     """)
 
     def __init__(self, setups: LanguageSetups) -> None:

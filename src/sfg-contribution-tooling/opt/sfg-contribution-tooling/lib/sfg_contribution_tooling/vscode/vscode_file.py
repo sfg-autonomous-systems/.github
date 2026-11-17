@@ -7,9 +7,8 @@ import sys
 from typing import TYPE_CHECKING, Any
 
 from sfg_contribution_tooling import constants, files, jsonc
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error, UnexpectedTypeError
 from sfg_contribution_tooling.vscode.file_kind import FileKind
-from sfg_contribution_tooling.vscode.unexpected_type_error import UnexpectedTypeError
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -54,12 +53,13 @@ class VsCodeFile:
         """Render a missing settings.json or extensions.json from the setup, without writing it."""
         kind = FileKind.from_path(path)
 
-        if kind is FileKind.Settings:
-            text = setup.settings_to_string()
-        elif kind is FileKind.Extensions:
-            text = setup.extensions_to_string()
-        else:
-            raise Error(f"{os.path.relpath(path)}: cannot be created")
+        match kind:
+            case FileKind.Settings:
+                text = setup.settings_to_string()
+            case FileKind.Extensions:
+                text = setup.extensions_to_string()
+            case FileKind.Devcontainer:
+                raise Error(f"{os.path.relpath(path)}: cannot be created")
 
         data, _ = jsonc.parse(text)
         file = cls(path, kind, data, has_comments=False)
@@ -82,14 +82,14 @@ class VsCodeFile:
 
         if settings is not None and self.kind.settings_path is not None:
             differences.extend(
-                _find_setting_differences(settings, setup.settings, self.kind.settings_path)
+                self._find_setting_differences(settings, setup.settings, self.kind.settings_path)
             )
 
         if extensions is not None and self.kind.extensions_path is not None:
             key_path = jsonc.format_key_path(self.kind.extensions_path)
             differences.extend(
                 f"{key_path}: missing {jsonc.format_value(extension)}"
-                for extension in _find_missing_extensions(extensions, setup)
+                for extension in self._find_missing_extensions(extensions, setup)
             )
 
         return differences
@@ -102,10 +102,10 @@ class VsCodeFile:
             raise Error(f"{os.path.relpath(self.path)}: {error}") from None
 
         if settings is not None:
-            _merge_settings(settings, setup.settings)
+            self._merge_settings(settings, setup.settings)
 
         if extensions is not None:
-            extensions.extend(_find_missing_extensions(extensions, setup))
+            extensions.extend(self._find_missing_extensions(extensions, setup))
 
         self._text = self._format(jsonc.dump(self.data) + "\n")
 
@@ -205,42 +205,44 @@ class VsCodeFile:
 
         return result.stdout
 
+    @staticmethod
+    def _find_missing_extensions(extensions: list[Any], setup: VsCodeSetup) -> list[str]:
+        present = {
+            extension.lower() for extension in extensions if isinstance(extension, str)
+        }
+        return [
+            extension for extension in setup.extensions if extension.lower() not in present
+        ]
 
-def _find_missing_extensions(extensions: list[Any], setup: VsCodeSetup) -> list[str]:
-    present = {
-        extension.lower() for extension in extensions if isinstance(extension, str)
-    }
-    return [
-        extension for extension in setup.extensions if extension.lower() not in present
-    ]
+    @staticmethod
+    def _find_setting_differences(
+        settings: dict[str, Any], reference: dict[str, Any], key_path: tuple[str, ...]
+    ) -> list[str]:
+        """List the settings that are missing or have another value, comparing objects key by key."""
+        differences = []
 
+        for key, value in reference.items():
+            value_path = (*key_path, key)
 
-def _find_setting_differences(
-    settings: dict[str, Any], reference: dict[str, Any], key_path: tuple[str, ...]
-) -> list[str]:
-    """List the settings that are missing or have another value, comparing objects key by key."""
-    differences = []
+            if key not in settings:
+                differences.append(f"{jsonc.format_key_path(value_path)}: missing")
+            elif isinstance(settings[key], dict) and isinstance(value, dict):
+                differences.extend(
+                    VsCodeFile._find_setting_differences(settings[key], value, value_path)
+                )
+            elif not jsonc.are_equal(settings[key], value):
+                differences.append(
+                    f"{jsonc.format_key_path(value_path)}: "
+                    f"{jsonc.format_value(settings[key])}, expected {jsonc.format_value(value)}"
+                )
 
-    for key, value in reference.items():
-        value_path = (*key_path, key)
+        return differences
 
-        if key not in settings:
-            differences.append(f"{jsonc.format_key_path(value_path)}: missing")
-        elif isinstance(settings[key], dict) and isinstance(value, dict):
-            differences.extend(_find_setting_differences(settings[key], value, value_path))
-        elif not jsonc.are_equal(settings[key], value):
-            differences.append(
-                f"{jsonc.format_key_path(value_path)}: "
-                f"{jsonc.format_value(settings[key])}, expected {jsonc.format_value(value)}"
-            )
-
-    return differences
-
-
-def _merge_settings(settings: dict[str, Any], reference: dict[str, Any]) -> None:
-    """Merge the reference into the settings: objects key by key, other values as a whole."""
-    for key, value in reference.items():
-        if isinstance(settings.get(key), dict) and isinstance(value, dict):
-            _merge_settings(settings[key], value)
-        else:
-            settings[key] = copy.deepcopy(value)
+    @staticmethod
+    def _merge_settings(settings: dict[str, Any], reference: dict[str, Any]) -> None:
+        """Merge the reference into the settings: objects key by key, other values as a whole."""
+        for key, value in reference.items():
+            if isinstance(settings.get(key), dict) and isinstance(value, dict):
+                VsCodeFile._merge_settings(settings[key], value)
+            else:
+                settings[key] = copy.deepcopy(value)

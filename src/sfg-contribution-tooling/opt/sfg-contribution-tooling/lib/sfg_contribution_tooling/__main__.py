@@ -10,7 +10,7 @@ from sfg_contribution_tooling import constants
 from sfg_contribution_tooling.commands.command import Command
 from sfg_contribution_tooling.commands.init_command import InitCommand
 from sfg_contribution_tooling.commands.update_command import UpdateCommand
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 from sfg_contribution_tooling.language_setups import LanguageSetups
 
 

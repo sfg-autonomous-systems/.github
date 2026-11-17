@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from sfg_contribution_tooling import constants
 from sfg_contribution_tooling.commands.command import Command
 from sfg_contribution_tooling.configuration_files import ConfigurationFiles
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 from sfg_contribution_tooling.vscode.extension_installer import ExtensionInstaller
 from sfg_contribution_tooling.vscode.file_kind import FileKind
 from sfg_contribution_tooling.vscode.vscode_file import VsCodeFile
@@ -30,16 +30,15 @@ class InitCommand(Command):
         "create the missing configuration and VS Code files and check the existing ones"
     )
     description = textwrap.dedent("""\
-        Copy the configuration files of the chosen languages into the directory and
-        create .vscode/settings.json and .vscode/extensions.json. Set up all
+        Copies the configuration files of the chosen languages into the directory and
+        creates .vscode/settings.json and .vscode/extensions.json. Sets up all
         languages unless --languages is given.
 
-        Existing files are never changed, only checked. For a configuration file
-        that differs, a warning names the reference to compare it with. For VS Code
-        files that differ, the update command to run is printed, and the exit
-        status is 1.
+        Never changes existing files, only checks them. For a configuration file that
+        differs, prints a warning naming the reference to compare it with. For VS Code
+        files that differ, prints the update command to run and exits with status 1.
 
-        After creating .vscode/extensions.json, offer to install the extensions.
+        After creating .vscode/extensions.json, offers to install the extensions.
     """)
 
     def __init__(self, setups: LanguageSetups) -> None:

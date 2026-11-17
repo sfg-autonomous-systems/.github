@@ -1,5 +1,4 @@
-# Only needed if the repository has no pyproject.toml with requires-python.
-# target-version = "py310"
+target-version = "py310"
 
 [lint]
 extend-select = [

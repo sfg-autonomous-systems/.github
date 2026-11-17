@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from sfg_contribution_tooling import constants, jsonc
-from sfg_contribution_tooling.error import Error
+from sfg_contribution_tooling.errors import Error
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -45,7 +45,7 @@ class VsCodeSetup:
             for extension in setup.vscode.extensions:
                 extensions.setdefault(extension.lower(), extension)
 
-            _add_settings(settings, setup.vscode.settings, (), setup.key, origins)
+            cls._add_settings(settings, setup.vscode.settings, (), setup.key, origins)
 
         return cls(sections, list(extensions.values()), settings)
 
@@ -92,31 +92,31 @@ class VsCodeSetup:
     def extensions_to_string(self) -> str:
         return jsonc.dump({"recommendations": self.extensions}) + "\n"
 
+    @staticmethod
+    def _add_settings(
+        target: dict[str, Any],
+        source: dict[str, Any],
+        key_path: tuple[str, ...],
+        language: str,
+        origins: dict[tuple[str, ...], str],
+    ) -> None:
+        """Add the settings of one language, failing on a value another language sets differently."""
+        for key, value in source.items():
+            value_path = (*key_path, key)
 
-def _add_settings(
-    target: dict[str, Any],
-    source: dict[str, Any],
-    key_path: tuple[str, ...],
-    language: str,
-    origins: dict[tuple[str, ...], str],
-) -> None:
-    """Add the settings of one language, failing on a value another language sets differently."""
-    for key, value in source.items():
-        value_path = (*key_path, key)
-
-        if key not in target:
-            target[key] = copy.deepcopy(value)
-            origins[value_path] = language
-        elif isinstance(target[key], dict) and isinstance(value, dict):
-            _add_settings(target[key], value, value_path, language, origins)
-        elif not jsonc.are_equal(target[key], value):
-            # The value came from the language that added it or one of its parent objects.
-            origin = next(
-                origins[value_path[:length]]
-                for length in range(len(value_path), 0, -1)
-                if value_path[:length] in origins
-            )
-            raise Error(
-                f"{constants.LANGUAGE_SETUPS_FILE}: {jsonc.format_key_path(value_path)}: "
-                f"'{origin}' and '{language}' have different values"
-            )
+            if key not in target:
+                target[key] = copy.deepcopy(value)
+                origins[value_path] = language
+            elif isinstance(target[key], dict) and isinstance(value, dict):
+                VsCodeSetup._add_settings(target[key], value, value_path, language, origins)
+            elif not jsonc.are_equal(target[key], value):
+                # The value came from the language that added it or one of its parent objects.
+                origin = next(
+                    origins[value_path[:length]]
+                    for length in range(len(value_path), 0, -1)
+                    if value_path[:length] in origins
+                )
+                raise Error(
+                    f"{constants.LANGUAGE_SETUPS_FILE}: {jsonc.format_key_path(value_path)}: "
+                    f"'{origin}' and '{language}' have different values"
+                )
