@@ -125,7 +125,7 @@ See `sfg-contribution-tooling init --help` for what it does and its options.
 [ty]: https://marketplace.visualstudio.com/items?itemName=astral-sh.ty
 [bash-ide]: https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode
 
-The settings and extensions of each language are in [`languages.jsonc`](../src/sfg-contribution-tooling/opt/sfg-contribution-tooling/share/languages.jsonc), for reference only.
+The settings and extensions of each language are in [`language-setups.jsonc`](../src/sfg-contribution-tooling/opt/sfg-contribution-tooling/share/language-setups.jsonc), for reference only.
 
 > [!warning]
 > ty and Bash IDE look for `ty.toml` and `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace.

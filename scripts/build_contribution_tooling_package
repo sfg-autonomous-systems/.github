@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import hashlib
+import re
 import shutil
 import subprocess
 import sys
@@ -23,6 +24,8 @@ CONFIG_DIRECTORY = REPOSITORY_ROOT / "contributing" / "config"
 TOOLS_FILE = REPOSITORY_ROOT / "src" / f"{PACKAGE_NAME}-tools.toml"
 INSTALL_PREFIX = Path("opt") / PACKAGE_NAME
 DOC_DIRECTORY = Path("usr") / "share" / "doc" / PACKAGE_NAME
+CONSTANTS_FILE = INSTALL_PREFIX / "lib" / "sfg_contribution_tooling" / "constants.py"
+VERSION_PLACEHOLDER = 'VERSION = "0.0.0"'
 
 
 @dataclass
@@ -144,9 +147,32 @@ def write_control(
     control_file.write_text("\n".join(lines) + "\n")
 
 
+def write_version(staging_directory: Path) -> None:
+    """Replace the placeholder version of the command line interface with the package version."""
+    control = (staging_directory / "DEBIAN" / "control").read_text()
+    match = re.search(r"^Version: (\S+)$", control, re.MULTILINE)
+
+    if match is None:
+        sys.exit("Error: The control file has no 'Version' field.")
+
+    constants_file = staging_directory / CONSTANTS_FILE
+    constants = constants_file.read_text()
+
+    if VERSION_PLACEHOLDER not in constants:
+        sys.exit(f"Error: '{VERSION_PLACEHOLDER}' is missing in {CONSTANTS_FILE}.")
+
+    constants_file.write_text(
+        constants.replace(VERSION_PLACEHOLDER, f'VERSION = "{match[1]}"')
+    )
+
+
 def normalize_permissions(staging_directory: Path) -> None:
     """Make the package independent of the umask of the build machine."""
     for path in [staging_directory, *staging_directory.rglob("*")]:
+        # is_dir() and chmod() follow symlinks, which would change their targets on this machine.
+        if path.is_symlink():
+            continue
+
         if path.is_dir() or path.parent.name == "bin":
             path.chmod(0o755)
         else:
@@ -176,7 +202,14 @@ def main() -> None:
         staging_directory = Path(temporary_directory) / PACKAGE_NAME
 
         build_wheels(pins, wheel_directory)
-        shutil.copytree(PACKAGE_SOURCE, staging_directory)
+        # Running the package from the checkout leaves '__pycache__' directories in it.
+        shutil.copytree(
+            PACKAGE_SOURCE,
+            staging_directory,
+            symlinks=True,
+            ignore=shutil.ignore_patterns("__pycache__"),
+        )
+        write_version(staging_directory)
 
         for pin in pins:
             extract_wheel(pin, wheel_directory, staging_directory)
