@@ -15,18 +15,16 @@ from sfg_contribution_tooling.language_setups import LanguageSetups
 
 
 def create_parser(setups: LanguageSetups) -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog=constants.PROGRAM_NAME,
-        description=__doc__,
-        epilog=f"For details, run '{constants.PROGRAM_NAME} COMMAND --help'.",
-    )
+    parser = argparse.ArgumentParser(prog=constants.PROGRAM_NAME, description=__doc__)
     parser.add_argument(
-        "--version", action="version", version=f"%(prog)s {constants.VERSION}"
+        "--version",
+        action="version",
+        version=f"%(prog)s {constants.VERSION}",
     )
-    subparsers = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    for command in (InitCommand(), UpdateCommand()):
-        command.add_parser(subparsers, setups.selectable_keys())
+    for command in (InitCommand(setups), UpdateCommand(setups)):
+        command.register_with(subparsers)
 
     return parser
 
@@ -40,7 +38,7 @@ def main() -> int:
         setups = LanguageSetups.read(constants.LANGUAGE_SETUPS_FILE)
         args = create_parser(setups).parse_args()
         command: Command = args.selected_command
-        return command.run(args, setups)
+        return command.run(args)
     except Error as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1

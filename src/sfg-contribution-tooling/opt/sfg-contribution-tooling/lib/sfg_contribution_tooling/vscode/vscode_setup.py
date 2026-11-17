@@ -49,7 +49,7 @@ class VsCodeSetup:
 
         return cls(sections, list(extensions.values()), settings)
 
-    def render_settings(self) -> str:
+    def settings_to_string(self) -> str:
         """Serialize a created settings.json with a comment above the settings of each language.
 
         Settings that languages give different values, which are merged objects such as
@@ -68,7 +68,7 @@ class VsCodeSetup:
             key
             for key, key_values in values.items()
             if key in first_settings
-            or any(not jsonc.same_value(value, key_values[0]) for value in key_values)
+            or any(not jsonc.are_equal(value, key_values[0]) for value in key_values)
         }
         written_keys = set(first_keys)
         ordered_settings: dict[str, Any] = {}
@@ -89,7 +89,7 @@ class VsCodeSetup:
 
         return jsonc.dump(ordered_settings, comments=comments) + "\n"
 
-    def render_extensions(self) -> str:
+    def extensions_to_string(self) -> str:
         return jsonc.dump({"recommendations": self.extensions}) + "\n"
 
 
@@ -109,7 +109,7 @@ def _add_settings(
             origins[value_path] = language
         elif isinstance(target[key], dict) and isinstance(value, dict):
             _add_settings(target[key], value, value_path, language, origins)
-        elif not jsonc.same_value(target[key], value):
+        elif not jsonc.are_equal(target[key], value):
             # The value came from the language that added it or one of its parent objects.
             origin = next(
                 origins[value_path[:length]]

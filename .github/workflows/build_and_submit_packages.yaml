@@ -156,7 +156,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           mkdir init-exclude && cd init-exclude
-          sfg-contribution-tooling init --languages python markdown
+          sfg-contribution-tooling init --languages "python markdown"
           general="$(sed -n '\|// General Settings|,\|// Markdown Settings|p' .vscode/settings.json)"
           grep -qF '"**/.ruff_cache": true' <<<"${general}"
           grep -qF '"**/.rumdl_cache": true' <<<"${general}"
@@ -166,7 +166,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           mkdir init-repeat && cd init-repeat
-          sfg-contribution-tooling init --languages json toml
+          sfg-contribution-tooling init --languages "json toml"
           general="$(sed -n '\|// General Settings|,\|// JSON Settings|p' .vscode/settings.json)"
           json="$(sed -n '\|// JSON Settings|,\|// TOML Settings|p' .vscode/settings.json)"
           grep -qF '"dprint.path"' <<<"${json}"

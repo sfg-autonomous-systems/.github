@@ -26,7 +26,7 @@ class ExtensionInstaller:
             print("Install the recommended extensions from VS Code.")
             return
 
-        installed = self._installed_extensions(code)
+        installed = self._list_installed_extensions(code)
         extensions = [
             extension
             for extension in self.setup.extensions
@@ -61,7 +61,7 @@ class ExtensionInstaller:
             raise Error("installing the extensions failed")
 
     @staticmethod
-    def _installed_extensions(code: str) -> set[str]:
+    def _list_installed_extensions(code: str) -> set[str]:
         """Return the lowercase IDs of the installed extensions, or none if 'code' cannot list them."""
         try:
             result = subprocess.run(

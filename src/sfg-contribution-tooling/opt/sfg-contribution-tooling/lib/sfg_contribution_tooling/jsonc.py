@@ -12,7 +12,7 @@ _INDENT = "    "
 _CLOSING_PATTERN = re.compile(r"\s*[}\]]")
 
 
-def _string_end(text: str, start: int) -> int:
+def _find_string_end(text: str, start: int) -> int:
     """Return the index after the string that starts with the quote at 'start'."""
     index = start + 1
 
@@ -37,7 +37,7 @@ def parse(text: str) -> tuple[Any, bool]:
 
     while index < len(text):
         if text[index] == '"':
-            index = _string_end(text, index)
+            index = _find_string_end(text, index)
             continue
 
         if text.startswith("//", index):
@@ -68,7 +68,7 @@ def parse(text: str) -> tuple[Any, bool]:
     # Removes trailing commas in a second pass, as a comment may precede the closing bracket.
     while index < len(text):
         if text[index] == '"':
-            index = _string_end(text, index)
+            index = _find_string_end(text, index)
             continue
 
         if text[index] == "," and _CLOSING_PATTERN.match(text, index + 1):
@@ -98,24 +98,24 @@ def dump(value: Any, level: int = 0, comments: dict[str, str] | None = None) -> 
                 f"{indent}// {comments[key]}\n" if comments and key in comments else ""
             )
             properties.append(
-                f"{comment}{indent}{to_display(key)}: {dump(item, level + 1)}"
+                f"{comment}{indent}{format_value(key)}: {dump(item, level + 1)}"
             )
 
         return "{\n" + ",\n".join(properties) + f"\n{_INDENT * level}}}"
 
-    return to_display(value)
+    return format_value(value)
 
 
-def to_display(value: Any) -> str:
+def format_value(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def same_value(first: Any, second: Any) -> bool:
+def are_equal(first: Any, second: Any) -> bool:
     """Compare two JSON values, telling apart values Python considers equal, such as true and 1."""
     return json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
 
 
-def type_name(value: Any) -> str:
+def describe_type(value: Any) -> str:
     if isinstance(value, dict):
         return "an object"
 

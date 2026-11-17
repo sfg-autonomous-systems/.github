@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import os
 import subprocess
 import sys
 from typing import TYPE_CHECKING, Any
@@ -44,7 +45,7 @@ class VsCodeFile:
         try:
             data, has_comments = jsonc.parse(text)
         except Error as error:
-            raise Error(f"{files.display(path)}: {error}") from None
+            raise Error(f"{os.path.relpath(path)}: {error}") from None
 
         return cls(path, kind, data, has_comments)
 
@@ -54,11 +55,11 @@ class VsCodeFile:
         kind = FileKind.from_path(path)
 
         if kind is FileKind.Settings:
-            text = setup.render_settings()
+            text = setup.settings_to_string()
         elif kind is FileKind.Extensions:
-            text = setup.render_extensions()
+            text = setup.extensions_to_string()
         else:
-            raise Error(f"{files.display(path)}: cannot be created")
+            raise Error(f"{os.path.relpath(path)}: cannot be created")
 
         data, _ = jsonc.parse(text)
         file = cls(path, kind, data, has_comments=False)
@@ -67,13 +68,13 @@ class VsCodeFile:
 
         return file
 
-    def differences_from(self, setup: VsCodeSetup) -> list[str]:
+    def find_differences(self, setup: VsCodeSetup) -> list[str]:
         """List the settings and extensions of the setup that the file lacks or sets differently.
 
         Each difference is given as 'key: difference', settings objects are compared key by key.
         """
         try:
-            settings, extensions = self._sections(create=False)
+            settings, extensions = self._get_sections(create=False)
         except UnexpectedTypeError as error:
             return [str(error)]
 
@@ -81,14 +82,14 @@ class VsCodeFile:
 
         if settings is not None and self.kind.settings_path is not None:
             differences.extend(
-                _setting_differences(settings, setup.settings, self.kind.settings_path)
+                _find_setting_differences(settings, setup.settings, self.kind.settings_path)
             )
 
         if extensions is not None and self.kind.extensions_path is not None:
             key_path = jsonc.format_key_path(self.kind.extensions_path)
             differences.extend(
-                f"{key_path}: missing {jsonc.to_display(extension)}"
-                for extension in _missing_extensions(extensions, setup)
+                f"{key_path}: missing {jsonc.format_value(extension)}"
+                for extension in _find_missing_extensions(extensions, setup)
             )
 
         return differences
@@ -96,21 +97,21 @@ class VsCodeFile:
     def merge_from(self, setup: VsCodeSetup) -> None:
         """Merge the setup into the sections, the setup winning every difference."""
         try:
-            settings, extensions = self._sections(create=True)
+            settings, extensions = self._get_sections(create=True)
         except UnexpectedTypeError as error:
-            raise Error(f"{files.display(self.path)}: {error}") from None
+            raise Error(f"{os.path.relpath(self.path)}: {error}") from None
 
         if settings is not None:
             _merge_settings(settings, setup.settings)
 
         if extensions is not None:
-            extensions.extend(_missing_extensions(extensions, setup))
+            extensions.extend(_find_missing_extensions(extensions, setup))
 
         self._text = self._format(jsonc.dump(self.data) + "\n")
 
     def report(self, differences: list[str]) -> None:
         for difference in differences:
-            print(f"{files.display(self.path)}: {difference}", file=sys.stderr)
+            print(f"{os.path.relpath(self.path)}: {difference}", file=sys.stderr)
 
     def write(self) -> None:
         """Write the file if it was created or merged, noting whether it lost its comments."""
@@ -123,28 +124,28 @@ class VsCodeFile:
             note = " and removed its comments" if self.has_comments else ""
             files.write(self.path, self._text, "Updated", note)
 
-    def _sections(self, create: bool) -> tuple[dict[str, Any] | None, list[Any] | None]:
+    def _get_sections(self, create: bool) -> tuple[dict[str, Any] | None, list[Any] | None]:
         """Return the settings object and the extensions array of the file.
 
         Each is None if the kind of file does not have it.
         """
         if not isinstance(self.data, dict):
             raise UnexpectedTypeError(
-                f"expected an object, found {jsonc.type_name(self.data)}"
+                f"expected an object, found {jsonc.describe_type(self.data)}"
             )
 
         settings = None
         extensions = None
 
         if self.kind.settings_path is not None:
-            settings = self._section(self.kind.settings_path, dict, create)
+            settings = self._get_section(self.kind.settings_path, dict, create)
 
         if self.kind.extensions_path is not None:
-            extensions = self._section(self.kind.extensions_path, list, create)
+            extensions = self._get_section(self.kind.extensions_path, list, create)
 
         return settings, extensions
 
-    def _section(
+    def _get_section(
         self, key_path: tuple[str, ...], section_type: type, create: bool
     ) -> Any:
         """Return the section at the key path, checking its type and the types of its parents.
@@ -168,8 +169,8 @@ class VsCodeFile:
                 if not isinstance(value, expected_type):
                     raise UnexpectedTypeError(
                         f"{jsonc.format_key_path(key_path[: depth + 1])}: "
-                        f"expected {jsonc.type_name(expected_type())}, "
-                        f"found {jsonc.type_name(value)}"
+                        f"expected {jsonc.describe_type(expected_type())}, "
+                        f"found {jsonc.describe_type(value)}"
                     )
 
             section = value
@@ -199,13 +200,13 @@ class VsCodeFile:
 
         if result.returncode != 0:
             raise Error(
-                f"{files.display(self.path)}: dprint failed: {result.stderr.strip()}"
+                f"{os.path.relpath(self.path)}: dprint failed: {result.stderr.strip()}"
             )
 
         return result.stdout
 
 
-def _missing_extensions(extensions: list[Any], setup: VsCodeSetup) -> list[str]:
+def _find_missing_extensions(extensions: list[Any], setup: VsCodeSetup) -> list[str]:
     present = {
         extension.lower() for extension in extensions if isinstance(extension, str)
     }
@@ -214,7 +215,7 @@ def _missing_extensions(extensions: list[Any], setup: VsCodeSetup) -> list[str]:
     ]
 
 
-def _setting_differences(
+def _find_setting_differences(
     settings: dict[str, Any], reference: dict[str, Any], key_path: tuple[str, ...]
 ) -> list[str]:
     """List the settings that are missing or have another value, comparing objects key by key."""
@@ -226,11 +227,11 @@ def _setting_differences(
         if key not in settings:
             differences.append(f"{jsonc.format_key_path(value_path)}: missing")
         elif isinstance(settings[key], dict) and isinstance(value, dict):
-            differences.extend(_setting_differences(settings[key], value, value_path))
-        elif not jsonc.same_value(settings[key], value):
+            differences.extend(_find_setting_differences(settings[key], value, value_path))
+        elif not jsonc.are_equal(settings[key], value):
             differences.append(
                 f"{jsonc.format_key_path(value_path)}: "
-                f"{jsonc.to_display(settings[key])}, expected {jsonc.to_display(value)}"
+                f"{jsonc.format_value(settings[key])}, expected {jsonc.format_value(value)}"
             )
 
     return differences

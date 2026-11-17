@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import enum
+import os
 from typing import TYPE_CHECKING
 
-from sfg_contribution_tooling import files
 from sfg_contribution_tooling.error import Error
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ class FileKind(enum.Enum):
             return _FILE_NAMES[path.name]
         except KeyError:
             raise Error(
-                f"{files.display(path)}: expected a file named "
+                f"{os.path.relpath(path)}: expected a file named "
                 "settings.json, extensions.json, devcontainer.json or .devcontainer.json"
             ) from None
 

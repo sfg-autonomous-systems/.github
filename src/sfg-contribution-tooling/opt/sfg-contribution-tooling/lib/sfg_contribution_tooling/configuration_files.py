@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from typing import TYPE_CHECKING
 
@@ -40,7 +41,7 @@ class ConfigurationFiles:
                 missing[target] = content
             elif files.read_bytes(target) != content:
                 print(
-                    f"{files.display(target)}: differs from {source}", file=sys.stderr
+                    f"{os.path.relpath(target)}: differs from {source}", file=sys.stderr
                 )
 
         for target, content in missing.items():

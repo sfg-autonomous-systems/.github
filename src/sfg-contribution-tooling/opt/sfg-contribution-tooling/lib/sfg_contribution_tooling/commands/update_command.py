@@ -4,7 +4,6 @@ import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from sfg_contribution_tooling import constants
 from sfg_contribution_tooling.commands.command import Command
 from sfg_contribution_tooling.vscode.extension_installer import ExtensionInstaller
 from sfg_contribution_tooling.vscode.file_kind import FileKind
@@ -22,12 +21,6 @@ class UpdateCommand(Command):
 
     name = "update"
     help = "merge the settings and extensions into existing VS Code files"
-    # Wrapped like argparse wraps a generated usage, which it does not do for a given one.
-    usage = (
-        "%(prog)s [-h] FILE ... [--languages LANGUAGE ...]\n"
-        + " " * len(f"usage: {constants.PROGRAM_NAME} update ")
-        + "[--check]"
-    )
     description = textwrap.dedent("""\
         Merge the settings and extensions of the chosen languages into existing
         settings.json, extensions.json and devcontainer.json files. Merge those of
@@ -38,11 +31,9 @@ class UpdateCommand(Command):
 
         After updating an extensions.json, offer to install the extensions.
     """)
-    examples = (
-        f"{constants.PROGRAM_NAME} update .devcontainer/devcontainer.json --check",
-        f"{constants.PROGRAM_NAME} update .devcontainer/devcontainer.json",
-    )
-    languages_help = "languages whose settings and extensions are merged"
+
+    def __init__(self, setups: LanguageSetups) -> None:
+        self._setups = setups
 
     def _add_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
@@ -51,14 +42,19 @@ class UpdateCommand(Command):
             metavar="FILE",
             help="settings.json, extensions.json, devcontainer.json or .devcontainer.json file",
         )
+        self._add_languages_argument(
+            parser,
+            self._setups.list_selectable_keys(),
+            "languages whose settings and extensions are merged",
+        )
         parser.add_argument(
             "--check",
             action="store_true",
             help="only list the differences and exit with status 1 if there are any",
         )
 
-    def run(self, args: argparse.Namespace, setups: LanguageSetups) -> int:
-        vscode = VsCodeSetup.combine(setups.select(args.languages))
+    def run(self, args: argparse.Namespace) -> int:
+        vscode = VsCodeSetup.combine(self._setups.select(args.languages))
         unique_paths: dict[Path, Path] = {}
 
         for file in args.files:
@@ -75,7 +71,7 @@ class UpdateCommand(Command):
         # Loads and merges every file before writing any, so a failure leaves all unchanged.
         for path in paths:
             file = VsCodeFile.load(path)
-            differences = file.differences_from(vscode)
+            differences = file.find_differences(vscode)
 
             if not differences:
                 continue

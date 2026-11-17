@@ -6,11 +6,6 @@ from pathlib import Path
 from sfg_contribution_tooling.error import Error
 
 
-def display(path: Path) -> str:
-    """Return the path relative to the current directory, so printed commands work as printed."""
-    return os.path.relpath(path)
-
-
 def describe_error(error: Exception) -> str:
     """Return the reason of a file error without the path, which the message already names."""
     if isinstance(error, OSError) and error.strerror:
@@ -23,14 +18,14 @@ def read_bytes(path: Path) -> bytes:
     try:
         return path.read_bytes()
     except OSError as error:
-        raise Error(f"{display(path)}: {describe_error(error)}") from None
+        raise Error(f"{os.path.relpath(path)}: {describe_error(error)}") from None
 
 
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as error:
-        raise Error(f"{display(path)}: {describe_error(error)}") from None
+        raise Error(f"{os.path.relpath(path)}: {describe_error(error)}") from None
 
 
 def write(path: Path, content: str | bytes, verb: str, note: str = "") -> None:
@@ -43,6 +38,6 @@ def write(path: Path, content: str | bytes, verb: str, note: str = "") -> None:
         else:
             path.write_text(content, encoding="utf-8")
     except OSError as error:
-        raise Error(f"{display(path)}: {describe_error(error)}") from None
+        raise Error(f"{os.path.relpath(path)}: {describe_error(error)}") from None
 
-    print(f"{verb} {display(path)}{note}")
+    print(f"{verb} {os.path.relpath(path)}{note}")

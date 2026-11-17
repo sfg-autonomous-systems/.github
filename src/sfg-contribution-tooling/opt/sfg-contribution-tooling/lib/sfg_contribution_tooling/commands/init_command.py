@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import os
 import shlex
 import sys
 import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from sfg_contribution_tooling import constants, files
+from sfg_contribution_tooling import constants
 from sfg_contribution_tooling.commands.command import Command
 from sfg_contribution_tooling.configuration_files import ConfigurationFiles
 from sfg_contribution_tooling.error import Error
@@ -28,7 +29,6 @@ class InitCommand(Command):
     help = (
         "create the missing configuration and VS Code files and check the existing ones"
     )
-    usage = "%(prog)s [-h] [directory] [--languages LANGUAGE ...]"
     description = textwrap.dedent("""\
         Copy the configuration files of the chosen languages into the directory and
         create .vscode/settings.json and .vscode/extensions.json. Set up all
@@ -41,8 +41,9 @@ class InitCommand(Command):
 
         After creating .vscode/extensions.json, offer to install the extensions.
     """)
-    examples = (f"{constants.PROGRAM_NAME} init --languages python markdown",)
-    languages_help = "languages to set up"
+
+    def __init__(self, setups: LanguageSetups) -> None:
+        self._setups = setups
 
     def _add_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
@@ -51,14 +52,17 @@ class InitCommand(Command):
             default=".",
             help="repository root (default: current directory)",
         )
+        self._add_languages_argument(
+            parser, self._setups.list_selectable_keys(), "languages to set up"
+        )
 
-    def run(self, args: argparse.Namespace, setups: LanguageSetups) -> int:
+    def run(self, args: argparse.Namespace) -> int:
         directory = Path(args.directory)
 
         if not directory.is_dir():
-            raise Error(f"{files.display(directory)}: not a directory")
+            raise Error(f"{os.path.relpath(directory)}: not a directory")
 
-        selected = setups.select(args.languages)
+        selected = self._setups.select(args.languages)
         configuration_files = ConfigurationFiles.combine(selected)
         vscode = VsCodeSetup.combine(selected)
         created_files: list[VsCodeFile] = []
@@ -74,7 +78,7 @@ class InitCommand(Command):
                 continue
 
             file = VsCodeFile.load(path)
-            differences = file.differences_from(vscode)
+            differences = file.find_differences(vscode)
 
             if differences:
                 differing_files.append((file, differences))
@@ -96,11 +100,11 @@ class InitCommand(Command):
         command = [
             constants.PROGRAM_NAME,
             "update",
-            *[files.display(file.path) for file, _ in differing_files],
+            *[os.path.relpath(file.path) for file, _ in differing_files],
         ]
 
         if args.languages:
-            command.extend(["--languages", *dict.fromkeys(args.languages)])
+            command.extend(["--languages", " ".join(args.languages)])
 
         print(
             f"To merge the settings and extensions, run: {shlex.join(command)}",

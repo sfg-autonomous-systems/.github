@@ -4,10 +4,7 @@ import abc
 import argparse
 import shutil
 import textwrap
-from typing import TYPE_CHECKING, ClassVar
-
-if TYPE_CHECKING:
-    from sfg_contribution_tooling.language_setups import LanguageSetups
+from typing import ClassVar
 
 
 class Command(abc.ABC):
@@ -15,15 +12,10 @@ class Command(abc.ABC):
 
     name: ClassVar[str]
     help: ClassVar[str]
-    usage: ClassVar[str]
     description: ClassVar[str]
-    examples: ClassVar[tuple[str, ...]]
-
-    # The help of the --languages option before the note on its values.
-    languages_help: ClassVar[str]
 
     class HelpFormatter(argparse.RawDescriptionHelpFormatter):
-        """Keeps the line breaks of descriptions and examples, which are wrapped to 80 columns.
+        """Keeps the line breaks of descriptions, which are written for 80 columns.
 
         The help of the arguments is wrapped to the same width, as argparse otherwise fills the
         whole terminal with it.
@@ -34,47 +26,62 @@ class Command(abc.ABC):
                 prog, width=min(shutil.get_terminal_size().columns - 2, 79)
             )
 
-    def add_parser(
-        self,
-        subparsers: argparse._SubParsersAction[argparse.ArgumentParser],
-        language_keys: list[str],
+        def _split_lines(self, text: str, width: int) -> list[str]:
+            # Like argparse, but keeps names such as 'github-actions' on one line.
+            text = self._whitespace_matcher.sub(" ", text).strip()
+            return textwrap.wrap(text, width, break_on_hyphens=False)
+
+    @abc.abstractmethod
+    def run(self, args: argparse.Namespace) -> int:
+        """Run the command and return its exit status."""
+
+    def register_with(
+        self, subparsers: argparse._SubParsersAction[argparse.ArgumentParser]
     ) -> None:
-        """Add the parser of the command, which runs the command, to the subparsers."""
-        # Lists the languages in the epilog, as the help of an option breaks 'github-actions' apart.
-        languages_epilog = "languages:\n" + textwrap.fill(
-            ", ".join(language_keys),
-            width=79,
-            initial_indent="  ",
-            subsequent_indent="  ",
-            break_on_hyphens=False,
-        )
-        examples_heading = "example:" if len(self.examples) == 1 else "examples:"
+        """Add a parser for the command to the subparsers, which selects it by its name."""
         parser = subparsers.add_parser(
             self.name,
-            usage=self.usage,
             help=self.help,
-            formatter_class=Command.HelpFormatter,
             description=self.description,
-            epilog=f"{languages_epilog}\n\n{examples_heading}\n"
-            + "".join(f"  {example}\n" for example in self.examples),
-        )
-
-        # Added before the arguments of the command, so it comes first among the options.
-        parser.add_argument(
-            "--languages",
-            nargs="+",
-            choices=language_keys,
-            metavar="LANGUAGE",
-            help=f"{self.languages_help} (default: all); takes all following values, "
-            "so give it after the positional arguments",
+            formatter_class=Command.HelpFormatter,
         )
         self._add_arguments(parser)
+
+        # Puts the command into the parsed arguments, so main runs it without a branch per command.
         parser.set_defaults(selected_command=self)
+
+    @staticmethod
+    def _add_languages_argument(
+        parser: argparse.ArgumentParser, language_keys: list[str], help_text: str
+    ) -> None:
+        """Add the --languages option, which takes the languages as one value separated by spaces.
+
+        The parsed value is the list of chosen keys without duplicates, or None if none are given.
+        """
+
+        def parse_languages(value: str) -> list[str]:
+            keys = list(dict.fromkeys(value.split()))
+
+            if not keys:
+                raise argparse.ArgumentTypeError("expected at least one language")
+
+            unknown = [key for key in keys if key not in language_keys]
+
+            if unknown:
+                raise argparse.ArgumentTypeError(
+                    f"unknown {'language' if len(unknown) == 1 else 'languages'} "
+                    f"{', '.join(unknown)} (choose from {', '.join(language_keys)})"
+                )
+
+            return keys
+
+        parser.add_argument(
+            "--languages",
+            type=parse_languages,
+            metavar='"LANGUAGE ..."',
+            help=f"{help_text}, separated by spaces (default: all): {', '.join(language_keys)}",
+        )
 
     @abc.abstractmethod
     def _add_arguments(self, parser: argparse.ArgumentParser) -> None:
-        """Add the arguments of the command other than --languages."""
-
-    @abc.abstractmethod
-    def run(self, args: argparse.Namespace, setups: LanguageSetups) -> int:
-        """Run the command and return its exit status."""
+        """Add the arguments of the command."""

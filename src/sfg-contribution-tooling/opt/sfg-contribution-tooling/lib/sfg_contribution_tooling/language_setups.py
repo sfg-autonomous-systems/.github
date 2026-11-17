@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 from sfg_contribution_tooling import files, jsonc
@@ -31,7 +32,7 @@ class LanguageSetups:
         try:
             data, _ = jsonc.parse(text)
         except Error as error:
-            raise Error(f"{files.display(path)}: {error}") from None
+            raise Error(f"{os.path.relpath(path)}: {error}") from None
 
         if not isinstance(data, dict) or cls._GENERAL_KEY not in data:
             raise Error(f"{path}: expected an object with a '{cls._GENERAL_KEY}' entry")
@@ -55,7 +56,7 @@ class LanguageSetups:
     def general(self) -> LanguageSetup:
         return self._setups[0]
 
-    def selectable_keys(self) -> list[str]:
+    def list_selectable_keys(self) -> list[str]:
         """Return the keys of the setups the --languages option can choose."""
         return [setup.key for setup in self._setups[1:]]
 

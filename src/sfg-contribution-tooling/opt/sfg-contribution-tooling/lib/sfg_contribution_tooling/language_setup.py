@@ -21,22 +21,22 @@ class LanguageSetup:
     @classmethod
     def from_entry(cls, key: str, entry: Any) -> LanguageSetup:
         """Create the setup of an entry, raising an Error without the path if it is invalid."""
-        name = _value(key, entry, ("name",), str)
-        configuration_files = _value(key, entry, ("configurationFiles",), list)
+        name = _get_value(key, entry, ("name",), str)
+        configuration_files = _get_value(key, entry, ("configurationFiles",), list)
         vscode = None
 
-        if _value(key, entry, ("ides",), dict, required=False) is not None:
-            vscode = _value(key, entry, ("ides", "vscode"), dict, required=False)
+        if _get_value(key, entry, ("ides",), dict, required=False) is not None:
+            vscode = _get_value(key, entry, ("ides", "vscode"), dict, required=False)
 
         if vscode is not None:
-            extensions = _value(key, entry, ("ides", "vscode", "extensions"), list)
-            settings = _value(key, entry, ("ides", "vscode", "settings"), dict)
+            extensions = _get_value(key, entry, ("ides", "vscode", "extensions"), list)
+            settings = _get_value(key, entry, ("ides", "vscode", "settings"), dict)
             vscode = VsCodeSetup([(name, settings)], extensions, settings)
 
         return cls(key, name, ConfigurationFiles(configuration_files), vscode)
 
 
-def _value(
+def _get_value(
     key: str,
     entry: Any,
     key_path: tuple[str, ...],
@@ -50,7 +50,7 @@ def _value(
     """
     if not isinstance(entry, dict):
         raise Error(
-            f"{key}: invalid entry: expected an object, found {jsonc.type_name(entry)}"
+            f"{key}: invalid entry: expected an object, found {jsonc.describe_type(entry)}"
         )
 
     value: Any = entry
@@ -67,7 +67,7 @@ def _value(
         value = value[path_key]
 
     if not isinstance(value, value_type):
-        found = jsonc.type_name(value)
+        found = jsonc.describe_type(value)
     elif isinstance(value, list) and not all(isinstance(item, str) for item in value):
         found = "an array with other items than strings"
     else:
@@ -75,5 +75,5 @@ def _value(
 
     raise Error(
         f"{key}: invalid entry: {jsonc.format_key_path(key_path)}: "
-        f"expected {jsonc.type_name(value_type())}, found {found}"
+        f"expected {jsonc.describe_type(value_type())}, found {found}"
     )
