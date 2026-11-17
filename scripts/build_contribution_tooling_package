@@ -16,13 +16,13 @@ import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
-package_name = "sfg-contribution-tooling"
-repository_root = Path(__file__).resolve().parent.parent
-package_source = repository_root / "src" / package_name
-config_directory = repository_root / "contributing" / "config"
-tools_file = repository_root / "src" / f"{package_name}-tools.toml"
-install_prefix = Path("opt") / package_name
-doc_directory = Path("usr") / "share" / "doc" / package_name
+PACKAGE_NAME = "sfg-contribution-tooling"
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+PACKAGE_SOURCE = REPOSITORY_ROOT / "src" / PACKAGE_NAME
+CONFIG_DIRECTORY = REPOSITORY_ROOT / "contributing" / "config"
+TOOLS_FILE = REPOSITORY_ROOT / "src" / f"{PACKAGE_NAME}-tools.toml"
+INSTALL_PREFIX = Path("opt") / PACKAGE_NAME
+DOC_DIRECTORY = Path("usr") / "share" / "doc" / PACKAGE_NAME
 
 
 @dataclass
@@ -47,7 +47,7 @@ class DprintPlugin:
 
 def read_pins() -> tuple[list[Pin], list[DprintPlugin]]:
     """Read the pins of the packaged tools and dprint plugins, in the order of the tools file."""
-    with tools_file.open("rb") as file:
+    with TOOLS_FILE.open("rb") as file:
         tools = tomllib.load(file)
 
     plugins = tools.pop("dprint-plugins")
@@ -87,14 +87,14 @@ def extract_wheel(pin: Pin, wheel_directory: Path, staging_directory: Path) -> N
     with zipfile.ZipFile(wheel) as archive:
         names = archive.namelist()
         (binary,) = fnmatch.filter(names, pin.binary)
-        target = staging_directory / install_prefix / "bin" / Path(binary).name
+        target = staging_directory / INSTALL_PREFIX / "bin" / Path(binary).name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(archive.read(binary))
         target.chmod(0o755)
 
         for license_file in fnmatch.filter(names, "*.dist-info/licenses/?*"):
             target = (
-                staging_directory / doc_directory / pin.name / Path(license_file).name
+                staging_directory / DOC_DIRECTORY / pin.name / Path(license_file).name
             )
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(archive.read(license_file))
@@ -105,7 +105,7 @@ def download_plugin(plugin: DprintPlugin, staging_directory: Path) -> None:
     url = plugin.url.format(version=plugin.version)
 
     # The plugin server rejects the default User-Agent of urllib.
-    request = urllib.request.Request(url, headers={"User-Agent": package_name})
+    request = urllib.request.Request(url, headers={"User-Agent": PACKAGE_NAME})
 
     with urllib.request.urlopen(request) as response:
         content = response.read()
@@ -118,7 +118,7 @@ def download_plugin(plugin: DprintPlugin, staging_directory: Path) -> None:
         )
 
     target = (
-        staging_directory / install_prefix / "share" / "dprint" / f"{plugin.name}.wasm"
+        staging_directory / INSTALL_PREFIX / "share" / "dprint" / f"{plugin.name}.wasm"
     )
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(content)
@@ -137,9 +137,9 @@ def write_control(
     dprint_plugins = ", ".join(f"{plugin.name} {plugin.version}" for plugin in plugins)
     # "Package" stays the first field, the extended description follows the synopsis.
     lines.insert(1, f"Architecture: {architecture}")
-    lines.append(f" Installs {tools} to /{install_prefix}/bin")
+    lines.append(f" Installs {tools} to /{INSTALL_PREFIX}/bin")
     lines.append(
-        f" and the dprint plugins {dprint_plugins} to /{install_prefix}/share/dprint."
+        f" and the dprint plugins {dprint_plugins} to /{INSTALL_PREFIX}/share/dprint."
     )
     control_file.write_text("\n".join(lines) + "\n")
 
@@ -173,10 +173,10 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory() as temporary_directory:
         wheel_directory = Path(temporary_directory) / "wheels"
-        staging_directory = Path(temporary_directory) / package_name
+        staging_directory = Path(temporary_directory) / PACKAGE_NAME
 
         build_wheels(pins, wheel_directory)
-        shutil.copytree(package_source, staging_directory)
+        shutil.copytree(PACKAGE_SOURCE, staging_directory)
 
         for pin in pins:
             extract_wheel(pin, wheel_directory, staging_directory)
@@ -185,7 +185,7 @@ def main() -> None:
             download_plugin(plugin, staging_directory)
 
         shutil.copytree(
-            config_directory, staging_directory / install_prefix / "share" / "config"
+            CONFIG_DIRECTORY, staging_directory / INSTALL_PREFIX / "share" / "config"
         )
         write_control(pins, plugins, architecture, staging_directory)
         normalize_permissions(staging_directory)

@@ -18,32 +18,32 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-program_name = "sfg-contribution-tooling"
-install_prefix = Path("/opt") / program_name
-languages_file = install_prefix / "share" / "languages.jsonc"
-config_directory = install_prefix / "share" / "config"
-dprint_binary = install_prefix / "bin" / "dprint"
-general_key = "general"
-indent = "    "
+PROGRAM_NAME = "sfg-contribution-tooling"
+INSTALL_PREFIX = Path("/opt") / PROGRAM_NAME
+LANGUAGES_FILE = INSTALL_PREFIX / "share" / "languages.jsonc"
+CONFIG_DIRECTORY = INSTALL_PREFIX / "share" / "config"
+DPRINT_BINARY = INSTALL_PREFIX / "bin" / "dprint"
+GENERAL_KEY = "general"
+INDENT = "    "
 
 # The kind of each VS Code file by its name, and where the settings and extensions go in it.
-vscode_file_kinds = {
+VSCODE_FILE_KINDS = {
     "settings.json": "settings",
     "extensions.json": "extensions",
     "devcontainer.json": "devcontainer",
     ".devcontainer.json": "devcontainer",
 }
-settings_paths = {
+SETTINGS_PATHS = {
     "settings": (),
     "devcontainer": ("customizations", "vscode", "settings"),
 }
-extensions_paths = {
+EXTENSIONS_PATHS = {
     "extensions": ("recommendations",),
     "devcontainer": ("customizations", "vscode", "extensions"),
 }
 
 # Whitespace up to a closing brace or bracket, which makes a preceding comma a trailing one.
-closing_pattern = re.compile(r"\s*[}\]]")
+CLOSING_PATTERN = re.compile(r"\s*[}\]]")
 
 
 class Error(Exception):
@@ -158,7 +158,7 @@ def parse_jsonc(text: str, path: Path) -> tuple[Any, bool]:
             index = string_end(text, index)
             continue
 
-        if text[index] == "," and closing_pattern.match(text, index + 1):
+        if text[index] == "," and CLOSING_PATTERN.match(text, index + 1):
             characters[index] = " "
 
         index += 1
@@ -206,7 +206,7 @@ def add_settings(
                 if value_path[:length] in origins
             )
             raise Error(
-                f"{languages_file}: {format_key_path(value_path)}: "
+                f"{LANGUAGES_FILE}: {format_key_path(value_path)}: "
                 f"'{origin}' and '{language}' have different values"
             )
 
@@ -224,11 +224,11 @@ def combine_settings(languages: list[Language]) -> dict[str, Any]:
 
 def read_languages() -> dict[str, Language]:
     """Read languages.jsonc and check that its languages agree on every setting they share."""
-    data, _ = parse_jsonc(read_text(languages_file), languages_file)
+    data, _ = parse_jsonc(read_text(LANGUAGES_FILE), LANGUAGES_FILE)
 
-    if not isinstance(data, dict) or general_key not in data:
+    if not isinstance(data, dict) or GENERAL_KEY not in data:
         raise Error(
-            f"{languages_file}: expected an object with a '{general_key}' entry"
+            f"{LANGUAGES_FILE}: expected an object with a '{GENERAL_KEY}' entry"
         )
 
     languages: dict[str, Language] = {}
@@ -243,7 +243,7 @@ def read_languages() -> dict[str, Language]:
                 entry["settings"],
             )
         except (KeyError, TypeError) as error:
-            raise Error(f"{languages_file}: {key}: invalid entry: {error}") from None
+            raise Error(f"{LANGUAGES_FILE}: {key}: invalid entry: {error}") from None
 
     combine_settings(list(languages.values()))
 
@@ -255,10 +255,10 @@ def build_reference(
 ) -> Reference:
     """Collect what the chosen languages, or all if none are chosen, set up."""
     # The general entry comes first wherever it is in languages.jsonc.
-    selected = [languages[general_key]] + [
+    selected = [languages[GENERAL_KEY]] + [
         language
         for key, language in languages.items()
-        if key != general_key and (chosen is None or key in chosen)
+        if key != GENERAL_KEY and (chosen is None or key in chosen)
     ]
     extensions: dict[str, str] = {}
 
@@ -287,10 +287,10 @@ def to_json(value: Any, level: int = 0) -> str:
     """
     if isinstance(value, dict) and value:
         properties = [
-            f"{indent * (level + 1)}{to_display(key)}: {to_json(item, level + 1)}"
+            f"{INDENT * (level + 1)}{to_display(key)}: {to_json(item, level + 1)}"
             for key, item in value.items()
         ]
-        return "{\n" + ",\n".join(properties) + f"\n{indent * level}}}"
+        return "{\n" + ",\n".join(properties) + f"\n{INDENT * level}}}"
 
     return to_display(value)
 
@@ -328,9 +328,9 @@ def render_settings(reference: Reference) -> str:
         if not keys:
             continue
 
-        lines.append(f"{indent}// {language.name} Settings")
+        lines.append(f"{INDENT}// {language.name} Settings")
         lines.extend(
-            f"{indent}{to_display(key)}: {to_json(reference.settings[key], 1)},"
+            f"{INDENT}{to_display(key)}: {to_json(reference.settings[key], 1)},"
             for key in keys
         )
 
@@ -348,12 +348,12 @@ def format_json(path: Path, text: str) -> str:
     """Format the text of a VS Code file with the packaged dprint, so it matches format on save."""
     # The bare file name keeps the includes and excludes of dprint.jsonc from skipping the file.
     command = [
-        str(dprint_binary),
+        str(DPRINT_BINARY),
         "fmt",
         "--stdin",
         path.name,
         "--config",
-        str(config_directory / "dprint.jsonc"),
+        str(CONFIG_DIRECTORY / "dprint.jsonc"),
     ]
 
     try:
@@ -361,7 +361,7 @@ def format_json(path: Path, text: str) -> str:
             command, input=text, capture_output=True, encoding="utf-8", check=False
         )
     except OSError as error:
-        raise Error(f"{dprint_binary}: {describe_error(error)}") from None
+        raise Error(f"{DPRINT_BINARY}: {describe_error(error)}") from None
 
     if result.returncode != 0:
         raise Error(f"{display(path)}: dprint failed: {result.stderr.strip()}")
@@ -433,11 +433,11 @@ def find_containers(
     settings = None
     extensions = None
 
-    if kind in settings_paths:
-        settings = get_container(data, settings_paths[kind], dict, create)
+    if kind in SETTINGS_PATHS:
+        settings = get_container(data, SETTINGS_PATHS[kind], dict, create)
 
-    if kind in extensions_paths:
-        extensions = get_container(data, extensions_paths[kind], list, create)
+    if kind in EXTENSIONS_PATHS:
+        extensions = get_container(data, EXTENSIONS_PATHS[kind], list, create)
 
     return settings, extensions
 
@@ -486,12 +486,12 @@ def find_differences(kind: str, data: Any, reference: Reference) -> list[str]:
 
     if settings is not None:
         differences.extend(
-            setting_differences(settings, reference.settings, settings_paths[kind])
+            setting_differences(settings, reference.settings, SETTINGS_PATHS[kind])
         )
 
     if extensions is not None:
         differences.extend(
-            f"{format_key_path(extensions_paths[kind])}: missing {to_display(extension)}"
+            f"{format_key_path(EXTENSIONS_PATHS[kind])}: missing {to_display(extension)}"
             for extension in missing_extensions(extensions, reference)
         )
 
@@ -601,7 +601,7 @@ def run_init(args: argparse.Namespace, languages: dict[str, Language]) -> int:
 
     # Repositories may adjust their configuration files, so differences are only warnings.
     for name in reference.configuration_files:
-        source = config_directory / name
+        source = CONFIG_DIRECTORY / name
         target = directory / name
         content = read_bytes(source)
 
@@ -621,7 +621,7 @@ def run_init(args: argparse.Namespace, languages: dict[str, Language]) -> int:
             continue
 
         data, _ = parse_jsonc(read_text(target), target)
-        differences = find_differences(vscode_file_kinds[target.name], data, reference)
+        differences = find_differences(VSCODE_FILE_KINDS[target.name], data, reference)
         report_differences(target, differences)
 
         if differences:
@@ -635,7 +635,7 @@ def run_init(args: argparse.Namespace, languages: dict[str, Language]) -> int:
     if not differing_files:
         return 0
 
-    command = [program_name, "update", *[display(path) for path in differing_files]]
+    command = [PROGRAM_NAME, "update", *[display(path) for path in differing_files]]
 
     if args.languages:
         command.extend(["--languages", *dict.fromkeys(args.languages)])
@@ -658,7 +658,7 @@ def run_update(args: argparse.Namespace, languages: dict[str, Language]) -> int:
     paths = list(unique_paths.values())
 
     for path in paths:
-        if path.name not in vscode_file_kinds:
+        if path.name not in VSCODE_FILE_KINDS:
             raise Error(
                 f"{display(path)}: expected a file named "
                 "settings.json, extensions.json, devcontainer.json or .devcontainer.json"
@@ -670,7 +670,7 @@ def run_update(args: argparse.Namespace, languages: dict[str, Language]) -> int:
 
     # Parses, merges and formats every file before writing any, so a failure leaves all unchanged.
     for path in paths:
-        kind = vscode_file_kinds[path.name]
+        kind = VSCODE_FILE_KINDS[path.name]
         data, has_comments = parse_jsonc(read_text(path), path)
         differences = find_differences(kind, data, reference)
 
@@ -705,7 +705,7 @@ def run_update(args: argparse.Namespace, languages: dict[str, Language]) -> int:
     write_files(files, "Updated", commented_files)
 
     # The Dev Containers extension installs the extensions of a devcontainer.json itself.
-    if any(vscode_file_kinds[path.name] == "extensions" for path in files):
+    if any(VSCODE_FILE_KINDS[path.name] == "extensions" for path in files):
         offer_extensions(reference)
 
     return 0
@@ -724,9 +724,9 @@ class CommandHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
 def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog=program_name,
+        prog=PROGRAM_NAME,
         description=__doc__,
-        epilog=f"For details, run '{program_name} COMMAND --help'.",
+        epilog=f"For details, run '{PROGRAM_NAME} COMMAND --help'.",
     )
     commands = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
     languages_help = (
@@ -764,7 +764,7 @@ def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
         + textwrap.dedent(f"""
 
             example:
-              {program_name} init --languages python markdown
+              {PROGRAM_NAME} init --languages python markdown
         """),
     )
     init_parser.add_argument(
@@ -785,7 +785,7 @@ def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
         "update",
         # Wrapped like argparse wraps a generated usage, which it does not do for a given one.
         usage="%(prog)s [-h] FILE ... [--languages LANGUAGE ...]\n"
-        + " " * len(f"usage: {program_name} update ")
+        + " " * len(f"usage: {PROGRAM_NAME} update ")
         + "[--check]",
         help="merge the settings and extensions into existing VS Code files",
         formatter_class=CommandHelpFormatter,
@@ -803,8 +803,8 @@ def parse_arguments(language_keys: list[str]) -> argparse.Namespace:
         + textwrap.dedent(f"""
 
             examples:
-              {program_name} update .devcontainer/devcontainer.json --check
-              {program_name} update .devcontainer/devcontainer.json
+              {PROGRAM_NAME} update .devcontainer/devcontainer.json --check
+              {PROGRAM_NAME} update .devcontainer/devcontainer.json
         """),
     )
     update_parser.add_argument(
@@ -836,7 +836,7 @@ def main() -> int:
 
     try:
         languages = read_languages()
-        args = parse_arguments([key for key in languages if key != general_key])
+        args = parse_arguments([key for key in languages if key != GENERAL_KEY])
 
         if args.command == "init":
             return run_init(args, languages)

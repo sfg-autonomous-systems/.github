@@ -20,7 +20,10 @@ parser.add_argument("--output-directory", help="directory to write the package t
 # Validate Inputs
 if not pins:
     # 'pins' is empty, so there is no package to build.
-    print("Error: No tools are pinned in requirements-dev.txt.", file=sys.stderr)
+    print(
+        "Error: No tools are pinned in 'src/sfg-contribution-tooling-tools.toml'.",
+        file=sys.stderr,
+    )
     sys.exit(1)
 ```
 
