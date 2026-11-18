@@ -1,0 +1,248 @@
+// Everything that sfg-contribution-tooling sets up for each language, keyed by the value of its
+// --languages option. "general" is always set up.
+//
+// name:                The name in the "// <name> Settings" comments of a created settings.json.
+// configurationFiles:  The files copied from /opt/sfg-contribution-tooling/share/config/.
+// ides:                The setup of each IDE, which is optional.
+//   vscode.extensions: The VS Code extensions added to the recommendations.
+//   vscode.settings:   The VS Code settings. Repeated values across languages must match.
+{
+    "general": {
+        "name": "General",
+        "configurationFiles": [],
+        "ides": {
+            "vscode": {
+                "extensions": [],
+                "settings": {
+                    "editor.formatOnSave": true
+                }
+            }
+        }
+    },
+    "c-cpp": {
+        "name": "C and C++",
+        "configurationFiles": [
+            ".clang-format"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "ms-vscode.cpptools"
+                ],
+                "settings": {
+                    "C_Cpp.clang_format_path": "/opt/sfg-contribution-tooling/bin/clang-format",
+                    "[c][cpp]": {
+                        "editor.defaultFormatter": "ms-vscode.cpptools"
+                    }
+                }
+            }
+        }
+    },
+    "cmake": {
+        "name": "CMake",
+        "configurationFiles": [],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "josetr.cmake-language-support-vscode"
+                ],
+                "settings": {
+                    "[cmake]": {
+                        "editor.defaultFormatter": "josetr.cmake-language-support-vscode"
+                    }
+                }
+            }
+        }
+    },
+    "dockerfile": {
+        "name": "Dockerfile",
+        "configurationFiles": [
+            "dprint.jsonc"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "dprint.dprint"
+                ],
+                "settings": {
+                    "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+                    "[dockerfile][dockercompose]": {
+                        "editor.defaultFormatter": "dprint.dprint"
+                    }
+                }
+            }
+        }
+    },
+    "github-actions": {
+        "name": "GitHub Actions",
+        "configurationFiles": [],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "jimeh.actionlint"
+                ],
+                "settings": {
+                    "actionlint.executable": "/opt/sfg-contribution-tooling/bin/actionlint",
+                    "actionlint.shellcheckExecutable": "/opt/sfg-contribution-tooling/bin/shellcheck"
+                }
+            }
+        }
+    },
+    "json": {
+        "name": "JSON",
+        "configurationFiles": [
+            "dprint.jsonc"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "dprint.dprint"
+                ],
+                "settings": {
+                    "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+                    "[json][jsonc]": {
+                        "editor.defaultFormatter": "dprint.dprint"
+                    }
+                }
+            }
+        }
+    },
+    "markdown": {
+        "name": "Markdown",
+        "configurationFiles": [
+            ".rumdl.toml"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "rvben.rumdl"
+                ],
+                "settings": {
+                    "files.exclude": {
+                        "**/.rumdl_cache": true
+                    },
+                    "rumdl.server.path": "/opt/sfg-contribution-tooling/bin/rumdl",
+                    "[markdown]": {
+                        "editor.defaultFormatter": "rvben.rumdl"
+                    }
+                }
+            }
+        }
+    },
+    "python": {
+        "name": "Python",
+        "configurationFiles": [
+            "ruff.toml",
+            "ty.toml"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "ms-python.python",
+                    "charliermarsh.ruff",
+                    "astral-sh.ty"
+                ],
+                "settings": {
+                    "files.exclude": {
+                        "**/.ruff_cache": true
+                    },
+                    "python.languageServer": "Pylance",
+                    "ruff.path": [
+                        "/opt/sfg-contribution-tooling/bin/ruff"
+                    ],
+                    "ty.path": [
+                        "/opt/sfg-contribution-tooling/bin/ty"
+                    ],
+                    "ty.disableLanguageServices": true,
+                    "[python]": {
+                        "editor.defaultFormatter": "charliermarsh.ruff",
+                        "editor.codeActionsOnSave": {
+                            "source.organizeImports.ruff": "explicit"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "shell": {
+        "name": "Shell",
+        "configurationFiles": [
+            ".editorconfig",
+            ".shellcheckrc"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "mads-hartmann.bash-ide-vscode"
+                ],
+                "settings": {
+                    "bashIde.shellcheckPath": "/opt/sfg-contribution-tooling/bin/shellcheck",
+                    "bashIde.shfmt.path": "/opt/sfg-contribution-tooling/bin/shfmt",
+                    "[shellscript]": {
+                        "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode",
+                        "editor.detectIndentation": false,
+                        "editor.insertSpaces": true,
+                        "editor.tabSize": 4
+                    }
+                }
+            }
+        }
+    },
+    "toml": {
+        "name": "TOML",
+        "configurationFiles": [
+            "dprint.jsonc"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "dprint.dprint"
+                ],
+                "settings": {
+                    "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+                    "[toml]": {
+                        "editor.defaultFormatter": "dprint.dprint"
+                    }
+                }
+            }
+        }
+    },
+    "xml": {
+        "name": "XML",
+        "configurationFiles": [
+            "dprint.jsonc"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "dprint.dprint"
+                ],
+                "settings": {
+                    "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+                    "[xml]": {
+                        "editor.defaultFormatter": "dprint.dprint"
+                    }
+                }
+            }
+        }
+    },
+    "yaml": {
+        "name": "YAML",
+        "configurationFiles": [
+            "dprint.jsonc"
+        ],
+        "ides": {
+            "vscode": {
+                "extensions": [
+                    "dprint.dprint"
+                ],
+                "settings": {
+                    "dprint.path": "/opt/sfg-contribution-tooling/bin/dprint",
+                    "[yaml]": {
+                        "editor.defaultFormatter": "dprint.dprint"
+                    }
+                }
+            }
+        }
+    }
+}

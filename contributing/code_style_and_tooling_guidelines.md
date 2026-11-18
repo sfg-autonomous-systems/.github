@@ -20,7 +20,10 @@ parser.add_argument("--output-directory", help="directory to write the package t
 # Validate Inputs
 if not pins:
     # 'pins' is empty, so there is no package to build.
-    print("Error: No tools are pinned in requirements-dev.txt.", file=sys.stderr)
+    print(
+        "Error: No tools are pinned in 'src/sfg-contribution-tooling-tools.toml'.",
+        file=sys.stderr,
+    )
     sys.exit(1)
 ```
 
@@ -122,7 +125,7 @@ See `sfg-contribution-tooling init --help` for what it does and its options.
 [ty]: https://marketplace.visualstudio.com/items?itemName=astral-sh.ty
 [bash-ide]: https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode
 
-The settings and extensions of each language are in [`languages.jsonc`](../src/sfg-contribution-tooling/opt/sfg-contribution-tooling/share/languages.jsonc), for reference only.
+The settings and extensions of each language are in [`language-setups.jsonc`](../src/sfg-contribution-tooling/opt/sfg-contribution-tooling/share/language-setups.jsonc), for reference only.
 
 > [!warning]
 > ty and Bash IDE look for `ty.toml` and `.shellcheckrc` only in the VS Code workspace directory and its parent directories. Open the repository root as the workspace.

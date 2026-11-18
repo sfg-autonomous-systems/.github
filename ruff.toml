@@ -1,16 +1,26 @@
-# Only needed if the repository has no pyproject.toml with requires-python.
-# target-version = "py310"
+target-version = "py310"
 
 [lint]
 extend-select = [
     "ANN0", # Require type hints for function arguments.
     "ANN2", # Require type hints for function return values.
+    "D", # Enforce docstrings in the style below.
     "I002", # Require the imports below.
     "N", # Enforce pep8-naming.
     "UP006", # Enforce `list[str]` instead of `List[str]`.
     "UP007", # Enforce `X | Y` instead of `Union[X, Y]`.
     "UP045", # Enforce `X | None` instead of `Optional[X]`.
+    "W505", # Limit the length of comments and docstrings.
 ]
+ignore = [
+    "D1", # Allow missing docstrings; only check the ones that exist.
+]
+
+[lint.pycodestyle]
+max-doc-length = 88
+
+[lint.pydocstyle]
+convention = "google"
 
 [lint.isort]
 required-imports = ["from __future__ import annotations"]

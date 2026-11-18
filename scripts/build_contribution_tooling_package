@@ -1,28 +1,32 @@
 #!/usr/bin/env python3
-"""Build the sfg-contribution-tooling Debian package from the tools pinned in its tools file."""
+"""Build the sfg-contribution-tooling Debian package from its pinned tools."""
 
 from __future__ import annotations
 
 import argparse
 import fnmatch
 import hashlib
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
-import tomllib
 import urllib.request
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
-package_name = "sfg-contribution-tooling"
-repository_root = Path(__file__).resolve().parent.parent
-package_source = repository_root / "src" / package_name
-config_directory = repository_root / "contributing" / "config"
-tools_file = repository_root / "src" / f"{package_name}-tools.toml"
-install_prefix = Path("opt") / package_name
-doc_directory = Path("usr") / "share" / "doc" / package_name
+import tomllib
+
+PACKAGE_NAME = "sfg-contribution-tooling"
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+PACKAGE_SOURCE = REPOSITORY_ROOT / "src" / PACKAGE_NAME
+CONFIG_DIRECTORY = REPOSITORY_ROOT / "contributing" / "config"
+TOOLS_FILE = REPOSITORY_ROOT / "src" / f"{PACKAGE_NAME}-tools.toml"
+INSTALL_PREFIX = Path("opt") / PACKAGE_NAME
+DOC_DIRECTORY = Path("usr") / "share" / "doc" / PACKAGE_NAME
+CONSTANTS_FILE = INSTALL_PREFIX / "lib" / "sfg_contribution_tooling" / "constants.py"
+VERSION_PLACEHOLDER = 'VERSION = "0.0.0"'
 
 
 @dataclass
@@ -46,8 +50,13 @@ class DprintPlugin:
 
 
 def read_pins() -> tuple[list[Pin], list[DprintPlugin]]:
-    """Read the pins of the packaged tools and dprint plugins, in the order of the tools file."""
-    with tools_file.open("rb") as file:
+    """Read the pins of the packaged tools and dprint plugins.
+
+    Returns:
+        The pins of the tools and those of the dprint plugins, each in the order of
+        the tools file.
+    """
+    with TOOLS_FILE.open("rb") as file:
         tools = tomllib.load(file)
 
     plugins = tools.pop("dprint-plugins")
@@ -59,7 +68,14 @@ def read_pins() -> tuple[list[Pin], list[DprintPlugin]]:
 
 
 def build_wheels(pins: list[Pin], wheel_directory: Path) -> None:
-    """Fetch the wheels for the current architecture, building only allowed source distributions."""
+    """Fetch the wheels of the tools for the current architecture.
+
+    Only tools whose pin allows it are built from source distributions.
+
+    Args:
+        pins: Pins of the tools.
+        wheel_directory: Directory to write the wheels to.
+    """
     binary_only = [pin.name for pin in pins if not pin.source_build]
 
     subprocess.run(
@@ -80,32 +96,45 @@ def build_wheels(pins: list[Pin], wheel_directory: Path) -> None:
 
 
 def extract_wheel(pin: Pin, wheel_directory: Path, staging_directory: Path) -> None:
-    """Install the binary and the license files of one wheel into the staging directory."""
+    """Install the binary and the license files of a wheel into the staging directory.
+
+    Args:
+        pin: Pin of the tool, whose binary pattern selects the file in the wheel.
+        wheel_directory: Directory holding the wheel.
+        staging_directory: Root of the package being built.
+    """
     normalized_name = pin.name.replace("-", "_")
     (wheel,) = wheel_directory.glob(f"{normalized_name}-{pin.version}-*.whl")
 
     with zipfile.ZipFile(wheel) as archive:
         names = archive.namelist()
         (binary,) = fnmatch.filter(names, pin.binary)
-        target = staging_directory / install_prefix / "bin" / Path(binary).name
+        target = staging_directory / INSTALL_PREFIX / "bin" / Path(binary).name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(archive.read(binary))
         target.chmod(0o755)
 
         for license_file in fnmatch.filter(names, "*.dist-info/licenses/?*"):
             target = (
-                staging_directory / doc_directory / pin.name / Path(license_file).name
+                staging_directory / DOC_DIRECTORY / pin.name / Path(license_file).name
             )
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(archive.read(license_file))
 
 
 def download_plugin(plugin: DprintPlugin, staging_directory: Path) -> None:
-    """Install one dprint plugin into the staging directory after verifying its checksum."""
+    """Install a dprint plugin into the staging directory after verifying its checksum.
+
+    Exits with an error if the checksum differs from the pinned one.
+
+    Args:
+        plugin: Pin of the plugin.
+        staging_directory: Root of the package being built.
+    """
     url = plugin.url.format(version=plugin.version)
 
     # The plugin server rejects the default User-Agent of urllib.
-    request = urllib.request.Request(url, headers={"User-Agent": package_name})
+    request = urllib.request.Request(url, headers={"User-Agent": PACKAGE_NAME})
 
     with urllib.request.urlopen(request) as response:
         content = response.read()
@@ -118,7 +147,7 @@ def download_plugin(plugin: DprintPlugin, staging_directory: Path) -> None:
         )
 
     target = (
-        staging_directory / install_prefix / "share" / "dprint" / f"{plugin.name}.wasm"
+        staging_directory / INSTALL_PREFIX / "share" / "dprint" / f"{plugin.name}.wasm"
     )
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(content)
@@ -130,23 +159,65 @@ def write_control(
     architecture: str,
     staging_directory: Path,
 ) -> None:
-    """Add the architecture and the tool versions to the static control file."""
+    """Add the architecture and the tool versions to the static control file.
+
+    Args:
+        pins: Pins of the tools.
+        plugins: Pins of the dprint plugins.
+        architecture: Debian architecture of the package.
+        staging_directory: Root of the package being built.
+    """
     control_file = staging_directory / "DEBIAN" / "control"
     lines = control_file.read_text().splitlines()
     tools = ", ".join(f"{pin.name} {pin.version}" for pin in pins)
     dprint_plugins = ", ".join(f"{plugin.name} {plugin.version}" for plugin in plugins)
     # "Package" stays the first field, the extended description follows the synopsis.
     lines.insert(1, f"Architecture: {architecture}")
-    lines.append(f" Installs {tools} to /{install_prefix}/bin")
+    lines.append(f" Installs {tools} to /{INSTALL_PREFIX}/bin")
     lines.append(
-        f" and the dprint plugins {dprint_plugins} to /{install_prefix}/share/dprint."
+        f" and the dprint plugins {dprint_plugins} to /{INSTALL_PREFIX}/share/dprint."
     )
     control_file.write_text("\n".join(lines) + "\n")
 
 
+def write_version(staging_directory: Path) -> None:
+    """Replace the placeholder version of the CLI with the package version.
+
+    Takes the version from the control file. Exits with an error if the control file
+    has no version or the placeholder is missing.
+
+    Args:
+        staging_directory: Root of the package being built.
+    """
+    control = (staging_directory / "DEBIAN" / "control").read_text()
+    match = re.search(r"^Version: (\S+)$", control, re.MULTILINE)
+
+    if match is None:
+        sys.exit("Error: The control file has no 'Version' field.")
+
+    constants_file = staging_directory / CONSTANTS_FILE
+    constants = constants_file.read_text()
+
+    if VERSION_PLACEHOLDER not in constants:
+        sys.exit(f"Error: '{VERSION_PLACEHOLDER}' is missing in {CONSTANTS_FILE}.")
+
+    constants_file.write_text(
+        constants.replace(VERSION_PLACEHOLDER, f'VERSION = "{match[1]}"')
+    )
+
+
 def normalize_permissions(staging_directory: Path) -> None:
-    """Make the package independent of the umask of the build machine."""
+    """Make the package independent of the umask of the build machine.
+
+    Args:
+        staging_directory: Root of the package being built.
+    """
     for path in [staging_directory, *staging_directory.rglob("*")]:
+        # is_dir() and chmod() follow symlinks, which would change their targets on
+        # this machine.
+        if path.is_symlink():
+            continue
+
         if path.is_dir() or path.parent.name == "bin":
             path.chmod(0o755)
         else:
@@ -173,10 +244,17 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory() as temporary_directory:
         wheel_directory = Path(temporary_directory) / "wheels"
-        staging_directory = Path(temporary_directory) / package_name
+        staging_directory = Path(temporary_directory) / PACKAGE_NAME
 
         build_wheels(pins, wheel_directory)
-        shutil.copytree(package_source, staging_directory)
+        # Running the package from the checkout leaves '__pycache__' directories in it.
+        shutil.copytree(
+            PACKAGE_SOURCE,
+            staging_directory,
+            symlinks=True,
+            ignore=shutil.ignore_patterns("__pycache__"),
+        )
+        write_version(staging_directory)
 
         for pin in pins:
             extract_wheel(pin, wheel_directory, staging_directory)
@@ -185,13 +263,14 @@ def main() -> None:
             download_plugin(plugin, staging_directory)
 
         shutil.copytree(
-            config_directory, staging_directory / install_prefix / "share" / "config"
+            CONFIG_DIRECTORY, staging_directory / INSTALL_PREFIX / "share" / "config"
         )
         write_control(pins, plugins, architecture, staging_directory)
         normalize_permissions(staging_directory)
 
         args.output_directory.mkdir(parents=True, exist_ok=True)
-        # Given a directory, dpkg-deb names the package <package>_<version>_<architecture>.deb.
+        # Given a directory, dpkg-deb names the package
+        # <package>_<version>_<architecture>.deb.
         # Set the compression explicitly, as the default differs between dpkg versions.
         subprocess.run(
             [
