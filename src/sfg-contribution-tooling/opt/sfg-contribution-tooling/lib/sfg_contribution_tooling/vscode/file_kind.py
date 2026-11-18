@@ -40,9 +40,9 @@ class FileKind(enum.Enum):
                 return ("customizations", "vscode", "extensions")
 
     @classmethod
-    def from_path(cls, path: Path) -> FileKind:
+    def from_path(cls, filepath: Path) -> FileKind:
         """Return the kind of a file by its name."""
-        match path.name:
+        match filepath.name:
             case "settings.json":
                 return FileKind.Settings
             case "extensions.json":
@@ -51,6 +51,6 @@ class FileKind(enum.Enum):
                 return FileKind.Devcontainer
             case _:
                 raise Error(
-                    f"{os.path.relpath(path)}: expected a file named "
+                    f"{os.path.relpath(filepath)}: expected a file named "
                     "settings.json, extensions.json, devcontainer.json or .devcontainer.json"
                 )

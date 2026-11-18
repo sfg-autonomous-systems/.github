@@ -70,13 +70,13 @@ class InitCommand(Command):
         # Loads and renders the VS Code files before writing any file, so a failure leaves all
         # unchanged.
         for name in ("settings.json", "extensions.json"):
-            path = directory / ".vscode" / name
+            filepath = directory / ".vscode" / name
 
-            if not path.exists():
-                created_files.append(VsCodeFile.create(path, vscode))
+            if not filepath.exists():
+                created_files.append(VsCodeFile.create(filepath, vscode))
                 continue
 
-            file = VsCodeFile.load(path)
+            file = VsCodeFile.load(filepath)
             differences = file.find_differences(vscode)
 
             if differences:
@@ -99,7 +99,7 @@ class InitCommand(Command):
         command = [
             constants.PROGRAM_NAME,
             "update",
-            *[os.path.relpath(file.path) for file, _ in differing_files],
+            *[os.path.relpath(file.filepath) for file, _ in differing_files],
         ]
 
         if args.languages:

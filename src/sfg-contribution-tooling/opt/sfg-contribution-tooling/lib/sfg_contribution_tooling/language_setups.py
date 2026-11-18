@@ -29,24 +29,24 @@ class LanguageSetups:
         return iter(self._setups)
 
     @classmethod
-    def read(cls, path: Path) -> LanguageSetups:
+    def read(cls, filepath: Path) -> LanguageSetups:
         """Read the data file and check that its setups can be combined."""
-        text = files.read_text(path)
+        text = files.read_text(filepath)
 
         try:
             data, _ = jsonc.parse(text)
         except Error as error:
-            raise Error(f"{os.path.relpath(path)}: {error}") from None
+            raise Error(f"{os.path.relpath(filepath)}: {error}") from None
 
         if not isinstance(data, dict) or cls._GENERAL_KEY not in data:
-            raise Error(f"{path}: expected an object with a '{cls._GENERAL_KEY}' entry")
+            raise Error(f"{filepath}: expected an object with a '{cls._GENERAL_KEY}' entry")
 
         try:
             setups = [
                 LanguageSetup.from_raw(key, raw_setup) for key, raw_setup in data.items()
             ]
         except Error as error:
-            raise Error(f"{path}: {error}") from None
+            raise Error(f"{filepath}: {error}") from None
 
         # The general setup comes first wherever it is in the data file.
         setups.sort(key=lambda setup: setup.key != cls._GENERAL_KEY)

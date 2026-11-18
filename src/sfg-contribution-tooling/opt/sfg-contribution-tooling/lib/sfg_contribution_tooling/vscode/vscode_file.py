@@ -24,9 +24,9 @@ class VsCodeFile:
     """
 
     def __init__(
-        self, path: Path, kind: FileKind, data: Any, has_comments: bool
+        self, filepath: Path, kind: FileKind, data: Any, has_comments: bool
     ) -> None:
-        self.path = path
+        self.filepath = filepath
         self.kind = kind
         self.data = data
         self.has_comments = has_comments
@@ -36,22 +36,22 @@ class VsCodeFile:
         self._created = False
 
     @classmethod
-    def load(cls, path: Path) -> VsCodeFile:
-        kind = FileKind.from_path(path)
+    def load(cls, filepath: Path) -> VsCodeFile:
+        kind = FileKind.from_path(filepath)
 
-        text = files.read_text(path)
+        text = files.read_text(filepath)
 
         try:
             data, has_comments = jsonc.parse(text)
         except Error as error:
-            raise Error(f"{os.path.relpath(path)}: {error}") from None
+            raise Error(f"{os.path.relpath(filepath)}: {error}") from None
 
-        return cls(path, kind, data, has_comments)
+        return cls(filepath, kind, data, has_comments)
 
     @classmethod
-    def create(cls, path: Path, vscode_setup: VsCodeSetup) -> VsCodeFile:
+    def create(cls, filepath: Path, vscode_setup: VsCodeSetup) -> VsCodeFile:
         """Render a missing settings.json or extensions.json from the setup, without writing it."""
-        kind = FileKind.from_path(path)
+        kind = FileKind.from_path(filepath)
 
         match kind:
             case FileKind.Settings:
@@ -59,10 +59,10 @@ class VsCodeFile:
             case FileKind.Extensions:
                 text = vscode_setup.extensions_to_string()
             case FileKind.Devcontainer:
-                raise Error(f"{os.path.relpath(path)}: cannot be created")
+                raise Error(f"{os.path.relpath(filepath)}: cannot be created")
 
         data, _ = jsonc.parse(text)
-        file = cls(path, kind, data, has_comments=False)
+        file = cls(filepath, kind, data, has_comments=False)
         file._text = file._format(text)
         file._created = True
 
@@ -101,7 +101,7 @@ class VsCodeFile:
         try:
             settings, extensions = self._get_sections(create=True)
         except UnexpectedTypeError as error:
-            raise Error(f"{os.path.relpath(self.path)}: {error}") from None
+            raise Error(f"{os.path.relpath(self.filepath)}: {error}") from None
 
         if settings is not None:
             self._merge_settings(settings, vscode_setup.settings)
@@ -113,7 +113,7 @@ class VsCodeFile:
 
     def report(self, differences: list[str]) -> None:
         for difference in differences:
-            print(f"{os.path.relpath(self.path)}: {difference}", file=sys.stderr)
+            print(f"{os.path.relpath(self.filepath)}: {difference}", file=sys.stderr)
 
     def write(self) -> None:
         """Write the file if it was created or merged, noting whether it lost its comments."""
@@ -121,10 +121,10 @@ class VsCodeFile:
             return
 
         if self._created:
-            files.write(self.path, self._text, "Created")
+            files.write(self.filepath, self._text, "Created")
         else:
             note = " and removed its comments" if self.has_comments else ""
-            files.write(self.path, self._text, "Updated", note)
+            files.write(self.filepath, self._text, "Updated", note)
 
     def _get_sections(self, create: bool) -> tuple[dict[str, Any] | None, list[Any] | None]:
         """Return the settings object and the extensions array of the file.
@@ -186,7 +186,7 @@ class VsCodeFile:
             str(constants.DPRINT_BINARY),
             "fmt",
             "--stdin",
-            self.path.name,
+            self.filepath.name,
             "--config",
             str(constants.CONFIG_DIRECTORY / "dprint.jsonc"),
         ]
@@ -202,7 +202,7 @@ class VsCodeFile:
 
         if result.returncode != 0:
             raise Error(
-                f"{os.path.relpath(self.path)}: dprint failed: {result.stderr.strip()}"
+                f"{os.path.relpath(self.filepath)}: dprint failed: {result.stderr.strip()}"
             )
 
         return result.stdout

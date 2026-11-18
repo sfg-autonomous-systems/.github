@@ -55,22 +55,22 @@ class UpdateCommand(Command):
 
     def run(self, args: argparse.Namespace) -> int:
         vscode = VsCodeSetup.combine(self._language_setups.select(args.languages))
-        unique_paths: dict[Path, Path] = {}
+        unique_filepaths: dict[Path, Path] = {}
 
         for file in args.files:
-            unique_paths.setdefault(Path(file).resolve(), Path(file))
+            unique_filepaths.setdefault(Path(file).resolve(), Path(file))
 
-        paths = list(unique_paths.values())
+        filepaths = list(unique_filepaths.values())
 
-        for path in paths:
-            FileKind.from_path(path)
+        for filepath in filepaths:
+            FileKind.from_path(filepath)
 
         changed_files: list[VsCodeFile] = []
         has_differences = False
 
         # Loads and merges every file before writing any, so a failure leaves all unchanged.
-        for path in paths:
-            file = VsCodeFile.load(path)
+        for filepath in filepaths:
+            file = VsCodeFile.load(filepath)
             differences = file.find_differences(vscode)
 
             if not differences:
