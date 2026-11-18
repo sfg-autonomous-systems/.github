@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 class ExtensionInstaller:
     """Offers to install the extensions of a VS Code setup that are not installed yet."""
 
-    def __init__(self, setup: VsCodeSetup) -> None:
-        self.setup = setup
+    def __init__(self, vscode_setup: VsCodeSetup) -> None:
+        self.vscode_setup = vscode_setup
 
     def offer(self) -> None:
         """Install the extensions that are not installed yet with 'code', after asking."""
@@ -29,7 +29,7 @@ class ExtensionInstaller:
         installed = self._list_installed_extensions(code)
         extensions = [
             extension
-            for extension in self.setup.extensions
+            for extension in self.vscode_setup.extensions
             if extension.lower() not in installed
         ]
 

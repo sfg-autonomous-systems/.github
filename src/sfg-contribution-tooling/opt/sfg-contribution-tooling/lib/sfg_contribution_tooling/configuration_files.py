@@ -20,9 +20,13 @@ class ConfigurationFiles:
         self.names = list(dict.fromkeys(names))
 
     @classmethod
-    def combine(cls, setups: Iterable[LanguageSetup]) -> ConfigurationFiles:
+    def combine(cls, language_setups: Iterable[LanguageSetup]) -> ConfigurationFiles:
         """Combine the configuration files of the setups, each name once."""
-        return cls(name for setup in setups for name in setup.configuration_files.names)
+        return cls(
+            name
+            for language_setup in language_setups
+            for name in language_setup.configuration_files.names
+        )
 
     def install(self, directory: Path) -> None:
         """Copy the missing files into the directory and warn about the existing ones that differ.

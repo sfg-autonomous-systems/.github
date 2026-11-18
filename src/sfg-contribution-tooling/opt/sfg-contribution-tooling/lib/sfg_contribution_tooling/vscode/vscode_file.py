@@ -49,15 +49,15 @@ class VsCodeFile:
         return cls(path, kind, data, has_comments)
 
     @classmethod
-    def create(cls, path: Path, setup: VsCodeSetup) -> VsCodeFile:
+    def create(cls, path: Path, vscode_setup: VsCodeSetup) -> VsCodeFile:
         """Render a missing settings.json or extensions.json from the setup, without writing it."""
         kind = FileKind.from_path(path)
 
         match kind:
             case FileKind.Settings:
-                text = setup.settings_to_string()
+                text = vscode_setup.settings_to_string()
             case FileKind.Extensions:
-                text = setup.extensions_to_string()
+                text = vscode_setup.extensions_to_string()
             case FileKind.Devcontainer:
                 raise Error(f"{os.path.relpath(path)}: cannot be created")
 
@@ -68,7 +68,7 @@ class VsCodeFile:
 
         return file
 
-    def find_differences(self, setup: VsCodeSetup) -> list[str]:
+    def find_differences(self, vscode_setup: VsCodeSetup) -> list[str]:
         """List the settings and extensions of the setup that the file lacks or sets differently.
 
         Each difference is given as 'key: difference', settings objects are compared key by key.
@@ -82,19 +82,21 @@ class VsCodeFile:
 
         if settings is not None and self.kind.settings_path is not None:
             differences.extend(
-                self._find_setting_differences(settings, setup.settings, self.kind.settings_path)
+                self._find_setting_differences(
+                    settings, vscode_setup.settings, self.kind.settings_path
+                )
             )
 
         if extensions is not None and self.kind.extensions_path is not None:
             key_path = jsonc.format_key_path(self.kind.extensions_path)
             differences.extend(
                 f"{key_path}: missing {jsonc.format_value(extension)}"
-                for extension in self._find_missing_extensions(extensions, setup)
+                for extension in self._find_missing_extensions(extensions, vscode_setup)
             )
 
         return differences
 
-    def merge_from(self, setup: VsCodeSetup) -> None:
+    def merge_from(self, vscode_setup: VsCodeSetup) -> None:
         """Merge the setup into the sections, the setup winning every difference."""
         try:
             settings, extensions = self._get_sections(create=True)
@@ -102,10 +104,10 @@ class VsCodeFile:
             raise Error(f"{os.path.relpath(self.path)}: {error}") from None
 
         if settings is not None:
-            self._merge_settings(settings, setup.settings)
+            self._merge_settings(settings, vscode_setup.settings)
 
         if extensions is not None:
-            extensions.extend(self._find_missing_extensions(extensions, setup))
+            extensions.extend(self._find_missing_extensions(extensions, vscode_setup))
 
         self._text = self._format(jsonc.dump(self.data) + "\n")
 
@@ -206,12 +208,12 @@ class VsCodeFile:
         return result.stdout
 
     @staticmethod
-    def _find_missing_extensions(extensions: list[Any], setup: VsCodeSetup) -> list[str]:
+    def _find_missing_extensions(extensions: list[Any], vscode_setup: VsCodeSetup) -> list[str]:
         present = {
             extension.lower() for extension in extensions if isinstance(extension, str)
         }
         return [
-            extension for extension in setup.extensions if extension.lower() not in present
+            extension for extension in vscode_setup.extensions if extension.lower() not in present
         ]
 
     @staticmethod

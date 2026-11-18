@@ -14,7 +14,7 @@ from sfg_contribution_tooling.errors import Error
 from sfg_contribution_tooling.language_setups import LanguageSetups
 
 
-def create_parser(setups: LanguageSetups) -> argparse.ArgumentParser:
+def create_parser(language_setups: LanguageSetups) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog=constants.PROGRAM_NAME, description=__doc__)
     parser.add_argument(
         "--version",
@@ -23,7 +23,7 @@ def create_parser(setups: LanguageSetups) -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    for command in (InitCommand(setups), UpdateCommand(setups)):
+    for command in (InitCommand(language_setups), UpdateCommand(language_setups)):
         command.register_with(subparsers)
 
     return parser
@@ -35,8 +35,8 @@ def main() -> int:
         sys.stdout.reconfigure(line_buffering=True)
 
     try:
-        setups = LanguageSetups.read(constants.LANGUAGE_SETUPS_FILE)
-        args = create_parser(setups).parse_args()
+        language_setups = LanguageSetups.read(constants.LANGUAGE_SETUPS_FILE)
+        args = create_parser(language_setups).parse_args()
         command: Command = args.selected_command
         return command.run(args)
     except Error as error:

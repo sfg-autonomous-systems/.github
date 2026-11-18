@@ -26,7 +26,7 @@ class VsCodeSetup:
     settings: dict[str, Any]
 
     @classmethod
-    def combine(cls, setups: Iterable[LanguageSetup]) -> VsCodeSetup:
+    def combine(cls, language_setups: Iterable[LanguageSetup]) -> VsCodeSetup:
         """Combine the VS Code setups, failing on a setting that languages give different values.
 
         Extension IDs are case-insensitive, so an extension of several languages is added once.
@@ -36,16 +36,18 @@ class VsCodeSetup:
         settings: dict[str, Any] = {}
         origins: dict[tuple[str, ...], str] = {}
 
-        for setup in setups:
-            if setup.vscode is None:
+        for language_setup in language_setups:
+            if language_setup.vscode is None:
                 continue
 
-            sections.extend(setup.vscode.sections)
+            sections.extend(language_setup.vscode.sections)
 
-            for extension in setup.vscode.extensions:
+            for extension in language_setup.vscode.extensions:
                 extensions.setdefault(extension.lower(), extension)
 
-            cls._add_settings(settings, setup.vscode.settings, (), setup.key, origins)
+            cls._add_settings(
+                settings, language_setup.vscode.settings, (), language_setup.key, origins
+            )
 
         return cls(sections, list(extensions.values()), settings)
 

@@ -32,8 +32,8 @@ class UpdateCommand(Command):
         After updating an extensions.json, offers to install the extensions.
     """)
 
-    def __init__(self, setups: LanguageSetups) -> None:
-        self._setups = setups
+    def __init__(self, language_setups: LanguageSetups) -> None:
+        self._language_setups = language_setups
 
     def _add_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
@@ -44,7 +44,7 @@ class UpdateCommand(Command):
         )
         self._add_languages_argument(
             parser,
-            self._setups.list_selectable_keys(),
+            self._language_setups.list_selectable_keys(),
             "languages whose settings and extensions are merged",
         )
         parser.add_argument(
@@ -54,7 +54,7 @@ class UpdateCommand(Command):
         )
 
     def run(self, args: argparse.Namespace) -> int:
-        vscode = VsCodeSetup.combine(self._setups.select(args.languages))
+        vscode = VsCodeSetup.combine(self._language_setups.select(args.languages))
         unique_paths: dict[Path, Path] = {}
 
         for file in args.files:

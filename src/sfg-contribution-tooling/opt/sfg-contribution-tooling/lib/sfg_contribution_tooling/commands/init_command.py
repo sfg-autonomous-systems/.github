@@ -41,8 +41,8 @@ class InitCommand(Command):
         After creating .vscode/extensions.json, offers to install the extensions.
     """)
 
-    def __init__(self, setups: LanguageSetups) -> None:
-        self._setups = setups
+    def __init__(self, language_setups: LanguageSetups) -> None:
+        self._language_setups = language_setups
 
     def _add_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
@@ -52,7 +52,7 @@ class InitCommand(Command):
             help="repository root (default: current directory)",
         )
         self._add_languages_argument(
-            parser, self._setups.list_selectable_keys(), "languages to set up"
+            parser, self._language_setups.list_selectable_keys(), "languages to set up"
         )
 
     def run(self, args: argparse.Namespace) -> int:
@@ -61,7 +61,7 @@ class InitCommand(Command):
         if not directory.is_dir():
             raise Error(f"{os.path.relpath(directory)}: not a directory")
 
-        selected = self._setups.select(args.languages)
+        selected = self._language_setups.select(args.languages)
         configuration_files = ConfigurationFiles.combine(selected)
         vscode = VsCodeSetup.combine(selected)
         created_files: list[VsCodeFile] = []

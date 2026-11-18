@@ -43,7 +43,7 @@ class LanguageSetups:
 
         try:
             setups = [
-                LanguageSetup.from_entry(key, entry) for key, entry in data.items()
+                LanguageSetup.from_raw(key, raw_setup) for key, raw_setup in data.items()
             ]
         except Error as error:
             raise Error(f"{path}: {error}") from None
@@ -51,7 +51,7 @@ class LanguageSetups:
         # The general setup comes first wherever it is in the data file.
         setups.sort(key=lambda setup: setup.key != cls._GENERAL_KEY)
 
-        # Combines all setups once, so a conflict fails whichever languages are chosen.
+        # Combines all setups once, so a conflict fails regardless of which languages are chosen.
         VsCodeSetup.combine(setups)
 
         return cls(setups)

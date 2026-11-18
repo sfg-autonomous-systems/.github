@@ -19,18 +19,18 @@ class LanguageSetup:
     vscode: VsCodeSetup | None
 
     @classmethod
-    def from_entry(cls, key: str, entry: Any) -> LanguageSetup:
-        """Create the setup of an entry, raising an Error without the path if it is invalid."""
-        name = cls._get_value(key, entry, ("name",), str)
-        configuration_files = cls._get_value(key, entry, ("configurationFiles",), list)
+    def from_raw(cls, key: str, raw_setup: Any) -> LanguageSetup:
+        """Create the setup from raw data, raising an Error without the path if it is invalid."""
+        name = cls._get_value(key, raw_setup, ("name",), str)
+        configuration_files = cls._get_value(key, raw_setup, ("configurationFiles",), list)
         vscode = None
 
-        if cls._get_value(key, entry, ("ides",), dict, required=False) is not None:
-            vscode = cls._get_value(key, entry, ("ides", "vscode"), dict, required=False)
+        if cls._get_value(key, raw_setup, ("ides",), dict, required=False) is not None:
+            vscode = cls._get_value(key, raw_setup, ("ides", "vscode"), dict, required=False)
 
         if vscode is not None:
-            extensions = cls._get_value(key, entry, ("ides", "vscode", "extensions"), list)
-            settings = cls._get_value(key, entry, ("ides", "vscode", "settings"), dict)
+            extensions = cls._get_value(key, raw_setup, ("ides", "vscode", "extensions"), list)
+            settings = cls._get_value(key, raw_setup, ("ides", "vscode", "settings"), dict)
             vscode = VsCodeSetup([(name, settings)], extensions, settings)
 
         return cls(key, name, ConfigurationFiles(configuration_files), vscode)
@@ -38,28 +38,28 @@ class LanguageSetup:
     @staticmethod
     def _get_value(
         key: str,
-        entry: Any,
+        raw_setup: Any,
         key_path: tuple[str, ...],
         value_type: type,
         *,
         required: bool = True,
     ) -> Any:
-        """Return the value at the key path of an entry, whose parents must have been checked before.
+        """Return the value at the key path of a raw setup, whose parents must have been checked before.
 
         Returns None for a missing value that is not required. The items of an array must be strings.
         """
-        if not isinstance(entry, dict):
+        if not isinstance(raw_setup, dict):
             raise Error(
-                f"{key}: invalid entry: expected an object, found {jsonc.describe_type(entry)}"
+                f"{key}: invalid setup: expected an object, found {jsonc.describe_type(raw_setup)}"
             )
 
-        value: Any = entry
+        value: Any = raw_setup
 
         for path_key in key_path:
             if path_key not in value:
                 if required:
                     raise Error(
-                        f"{key}: invalid entry: {jsonc.format_key_path(key_path)}: missing"
+                        f"{key}: invalid setup: {jsonc.format_key_path(key_path)}: missing"
                     )
 
                 return None
@@ -74,6 +74,6 @@ class LanguageSetup:
             return value
 
         raise Error(
-            f"{key}: invalid entry: {jsonc.format_key_path(key_path)}: "
+            f"{key}: invalid setup: {jsonc.format_key_path(key_path)}: "
             f"expected {jsonc.describe_type(value_type())}, found {found}"
         )

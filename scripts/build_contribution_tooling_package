@@ -11,11 +11,12 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import tomllib
 import urllib.request
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
+
+import tomllib
 
 PACKAGE_NAME = "sfg-contribution-tooling"
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
