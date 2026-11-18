@@ -19,7 +19,7 @@ class FileKind(enum.Enum):
 
     @property
     def settings_path(self) -> tuple[str, ...] | None:
-        """Return the key path of the settings object, or None if the file has no settings."""
+        """Return the key path of the settings object, or None if there is none."""
         match self:
             case FileKind.Settings:
                 return ()
@@ -30,7 +30,7 @@ class FileKind(enum.Enum):
 
     @property
     def extensions_path(self) -> tuple[str, ...] | None:
-        """Return the key path of the extensions array, or None if the file has no extensions."""
+        """Return the key path of the extensions array, or None if there is none."""
         match self:
             case FileKind.Settings:
                 return None
@@ -41,7 +41,18 @@ class FileKind(enum.Enum):
 
     @classmethod
     def from_path(cls, filepath: Path) -> FileKind:
-        """Return the kind of a file by its name."""
+        """Return the kind of a file by its name.
+
+        Args:
+            filepath: The file, of which only the name is used.
+
+        Returns:
+            The kind matching the file name.
+
+        Raises:
+            Error: If the name is not settings.json, extensions.json, devcontainer.json
+                or .devcontainer.json.
+        """
         match filepath.name:
             case "settings.json":
                 return FileKind.Settings

@@ -8,12 +8,22 @@ from sfg_contribution_tooling.errors import Error
 
 _INDENT = "    "
 
-# Whitespace up to a closing brace or bracket, which makes a preceding comma a trailing one.
+# Whitespace up to a closing brace or bracket,
+# which makes a preceding comma a trailing one.
 _CLOSING_PATTERN = re.compile(r"\s*[}\]]")
 
 
 def _find_string_end(text: str, start: int) -> int:
-    """Return the index after the string that starts with the quote at 'start'."""
+    """Return the index after the string that starts with the quote at 'start'.
+
+    Args:
+        text: Text containing the string.
+        start: Index of the opening quote.
+
+    Returns:
+        The index after the closing quote, or an index past the end of the text if the
+        string is not terminated.
+    """
     index = start + 1
 
     # Skips escaped characters, so an escaped quote does not end the string.
@@ -26,9 +36,18 @@ def _find_string_end(text: str, start: int) -> int:
 def parse(text: str) -> tuple[Any, bool]:
     """Parse JSON with comments and trailing commas, as VS Code allows.
 
-    Returns the value and whether the text had comments. Comments and trailing commas are replaced
-    by spaces, so the positions in parse errors stay correct. Raises an Error without the path,
-    which the caller adds.
+    Comments and trailing commas are replaced by spaces, so the positions in parse
+    errors stay correct.
+
+    Args:
+        text: Text to parse. A leading byte order mark is ignored.
+
+    Returns:
+        The value and whether the text had comments.
+
+    Raises:
+        Error: If a block comment is not terminated or the text is not valid JSON. The
+            error does not name the file; the caller adds it.
     """
     text = text.removeprefix("\N{BYTE ORDER MARK}")
     characters = list(text)
@@ -65,7 +84,8 @@ def parse(text: str) -> tuple[Any, bool]:
     text = "".join(characters)
     index = 0
 
-    # Removes trailing commas in a second pass, as a comment may precede the closing bracket.
+    # Removes trailing commas in a second pass, as
+    # a comment may precede the closing bracket.
     while index < len(text):
         if text[index] == '"':
             index = _find_string_end(text, index)
@@ -85,9 +105,17 @@ def parse(text: str) -> tuple[Any, bool]:
 def dump(value: Any, level: int = 0, comments: dict[str, str] | None = None) -> str:
     """Serialize a value with one line per object property.
 
-    dprint keeps objects on one line if they start on one line, but wraps arrays that are too long,
-    so only arrays are written on one line. 'comments' maps properties of the value to a comment
-    written above them.
+    dprint keeps objects on one line if they start on one line, but wraps arrays that
+    are too long, so only arrays are written on one line.
+
+    Args:
+        value: JSON value to serialize.
+        level: Nesting depth of the value, which sets the indentation of its lines.
+        comments: Comments to write above properties of the value, by property key.
+            Properties of nested objects get no comments.
+
+    Returns:
+        The serialized value, without a trailing line break.
     """
     if isinstance(value, dict) and value:
         indent = _INDENT * (level + 1)
@@ -111,7 +139,15 @@ def format_value(value: Any) -> str:
 
 
 def are_equal(first: Any, second: Any) -> bool:
-    """Compare two JSON values, telling apart values Python considers equal, such as true and 1."""
+    """Compare two JSON values, telling apart values Python considers equal.
+
+    Args:
+        first: One value.
+        second: The other value.
+
+    Returns:
+        Whether the values serialize the same, ignoring the order of object keys.
+    """
     return json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
 
 

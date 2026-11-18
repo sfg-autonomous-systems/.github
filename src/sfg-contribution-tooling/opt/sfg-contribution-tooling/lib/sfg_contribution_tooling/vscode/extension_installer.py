@@ -13,20 +13,24 @@ if TYPE_CHECKING:
 
 
 class ExtensionInstaller:
-    """Offers to install the extensions of a VS Code setup that are not installed yet."""
+    """Offers to install the missing extensions of a VS Code setup."""
 
     def __init__(self, vscode_setup: VsCodeSetup) -> None:
         self.vscode_setup = vscode_setup
 
     def offer(self) -> None:
-        """Install the extensions that are not installed yet with 'code', after asking."""
+        """Install the missing extensions with 'code', after asking.
+
+        Raises:
+            Error: If installing the extensions fails.
+        """
         code = shutil.which("code")
 
         if code is None:
             print("Install the recommended extensions from VS Code.")
             return
 
-        installed = self._list_installed_extensions(code)
+        installed = self._get_installed_extensions(code)
         extensions = [
             extension
             for extension in self.vscode_setup.extensions
@@ -41,7 +45,7 @@ class ExtensionInstaller:
         for extension in extensions:
             command.extend(["--install-extension", extension])
 
-        # Never installs without asking, so a CI job or a 'postCreateCommand' only gets the command.
+        # Never install without asking. Give non-interactive sessions only the command.
         if not sys.stdin.isatty():
             print(f"To install the extensions, run: {shlex.join(command)}")
             return
@@ -61,8 +65,15 @@ class ExtensionInstaller:
             raise Error("installing the extensions failed")
 
     @staticmethod
-    def _list_installed_extensions(code: str) -> set[str]:
-        """Return the lowercase IDs of the installed extensions, or none if 'code' cannot list them."""
+    def _get_installed_extensions(code: str) -> set[str]:
+        """Return the installed extension IDs in lowercase, empty if retrieval fails.
+
+        Args:
+            code: Path of the 'code' executable.
+
+        Returns:
+            The IDs, or an empty set if 'code' cannot be run or fails.
+        """
         try:
             result = subprocess.run(
                 [code, "--list-extensions"],

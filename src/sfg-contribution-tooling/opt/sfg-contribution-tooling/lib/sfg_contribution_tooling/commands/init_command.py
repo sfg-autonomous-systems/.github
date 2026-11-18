@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class InitCommand(Command):
-    """Sets up the configuration and VS Code files of a repository, never changing existing ones."""
+    """Sets up the configuration and VS Code files, never changing existing ones."""
 
     name = "init"
     help = (
@@ -52,7 +52,7 @@ class InitCommand(Command):
             help="repository root (default: current directory)",
         )
         self._add_languages_argument(
-            parser, self._language_setups.list_selectable_keys(), "languages to set up"
+            parser, self._language_setups.get_selectable_keys(), "languages to set up"
         )
 
     def run(self, args: argparse.Namespace) -> int:
@@ -67,8 +67,8 @@ class InitCommand(Command):
         created_files: list[VsCodeFile] = []
         differing_files: list[tuple[VsCodeFile, list[str]]] = []
 
-        # Loads and renders the VS Code files before writing any file, so a failure leaves all
-        # unchanged.
+        # Loads and renders the VS Code files before writing any file, so a failure
+        # leaves all unchanged.
         for name in ("settings.json", "extensions.json"):
             filepath = directory / ".vscode" / name
 

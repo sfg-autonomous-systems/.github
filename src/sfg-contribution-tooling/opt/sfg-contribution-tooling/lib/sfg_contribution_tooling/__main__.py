@@ -1,4 +1,4 @@
-"""Set up a repository for the SFG Autonomous Systems contribution guidelines in VS Code."""
+"""Set up a repository for the SFG Autonomous Systems contribution guidelines."""
 
 from __future__ import annotations
 

@@ -17,8 +17,8 @@ class Command(abc.ABC):
     class HelpFormatter(argparse.RawDescriptionHelpFormatter):
         """Keeps the line breaks of descriptions, which are written for 80 columns.
 
-        The help of the arguments is wrapped to the same width, as argparse otherwise fills the
-        whole terminal with it.
+        The help of the arguments is wrapped to the same width, as argparse otherwise
+        fills the whole terminal with it.
         """
 
         def __init__(self, prog: str) -> None:
@@ -33,12 +33,26 @@ class Command(abc.ABC):
 
     @abc.abstractmethod
     def run(self, args: argparse.Namespace) -> int:
-        """Run the command and return its exit status."""
+        """Run the command and return its exit status.
+
+        Args:
+            args: The parsed command line arguments.
+
+        Returns:
+            The exit status.
+
+        Raises:
+            Error: If the command fails.
+        """
 
     def register_with(
         self, subparsers: argparse._SubParsersAction[argparse.ArgumentParser]
     ) -> None:
-        """Add a parser for the command to the subparsers, which selects it by its name."""
+        """Add a parser for the command to the subparsers, selected by its name.
+
+        Args:
+            subparsers: Subparsers of the main parser.
+        """
         parser = subparsers.add_parser(
             self.name,
             help=self.help,
@@ -47,16 +61,24 @@ class Command(abc.ABC):
         )
         self._add_arguments(parser)
 
-        # Puts the command into the parsed arguments, so main runs it without a branch per command.
+        # Puts the command into the parsed arguments, so that the main can call
+        # the run method without additional if statements for each command.
         parser.set_defaults(selected_command=self)
 
     @staticmethod
     def _add_languages_argument(
         parser: argparse.ArgumentParser, language_keys: list[str], help_text: str
     ) -> None:
-        """Add the --languages option, which takes the languages as one value separated by spaces.
+        """Add the --languages option, which takes the languages as one value.
 
-        The parsed value is the list of chosen keys without duplicates, or None if none are given.
+        The languages are separated by spaces. The parsed value is the list of chosen
+        keys without duplicates, or None if the option is not given.
+
+        Args:
+            parser: Parser of the command.
+            language_keys: Keys the option can choose.
+            help_text: Start of the help, which the separator, the default and the keys
+                follow.
         """
 
         def parse_languages(value: str) -> list[str]:
@@ -84,4 +106,8 @@ class Command(abc.ABC):
 
     @abc.abstractmethod
     def _add_arguments(self, parser: argparse.ArgumentParser) -> None:
-        """Add the arguments of the command."""
+        """Add the arguments of the command.
+
+        Args:
+            parser: Parser of the command.
+        """

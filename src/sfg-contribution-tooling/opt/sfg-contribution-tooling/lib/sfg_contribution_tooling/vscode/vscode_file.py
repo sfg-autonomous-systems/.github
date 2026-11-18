@@ -50,7 +50,19 @@ class VsCodeFile:
 
     @classmethod
     def create(cls, filepath: Path, vscode_setup: VsCodeSetup) -> VsCodeFile:
-        """Render a missing settings.json or extensions.json from the setup, without writing it."""
+        """Build a new settings.json or extensions.json in memory from the setup.
+
+        Args:
+            filepath: Where the file is to be written. Its name sets the kind of file.
+            vscode_setup: Setup providing the settings or extensions.
+
+        Returns:
+            The file, formatted and ready to write.
+
+        Raises:
+            Error: If the file is not named settings.json or extensions.json, or dprint
+                cannot be run or fails.
+        """
         kind = FileKind.from_path(filepath)
 
         match kind:
@@ -69,9 +81,16 @@ class VsCodeFile:
         return file
 
     def find_differences(self, vscode_setup: VsCodeSetup) -> list[str]:
-        """List the settings and extensions of the setup that the file lacks or sets differently.
+        """List the settings and extensions the file lacks or sets differently.
 
-        Each difference is given as 'key: difference', settings objects are compared key by key.
+        Differences read 'key: difference'; settings objects are compared key by key.
+
+        Args:
+            vscode_setup: Setup to compare the file with.
+
+        Returns:
+            The differences, or only the type error if the file or one of its sections
+            or their parents has another type.
         """
         try:
             settings, extensions = self._get_sections(create=False)
@@ -97,7 +116,15 @@ class VsCodeFile:
         return differences
 
     def merge_from(self, vscode_setup: VsCodeSetup) -> None:
-        """Merge the setup into the sections, the setup winning every difference."""
+        """Merge the setup into the sections, the setup winning every difference.
+
+        Args:
+            vscode_setup: Setup to merge into the file.
+
+        Raises:
+            Error: If the file or one of its sections or their parents has another type,
+                or dprint cannot be run or fails.
+        """
         try:
             settings, extensions = self._get_sections(create=True)
         except UnexpectedTypeError as error:
@@ -116,7 +143,11 @@ class VsCodeFile:
             print(f"{os.path.relpath(self.filepath)}: {difference}", file=sys.stderr)
 
     def write(self) -> None:
-        """Write the file if it was created or merged, noting whether it lost its comments."""
+        """Write the file if it was created or merged, noting any comments it lost.
+
+        Raises:
+            Error: If the file cannot be written.
+        """
         if self._text is None:
             return
 
@@ -126,10 +157,21 @@ class VsCodeFile:
             note = " and removed its comments" if self.has_comments else ""
             files.write(self.filepath, self._text, "Updated", note)
 
-    def _get_sections(self, create: bool) -> tuple[dict[str, Any] | None, list[Any] | None]:
+    def _get_sections(
+        self, create: bool
+    ) -> tuple[dict[str, Any] | None, list[Any] | None]:
         """Return the settings object and the extensions array of the file.
 
-        Each is None if the kind of file does not have it.
+        Args:
+            create: Whether to add missing sections and their missing parents.
+
+        Returns:
+            The settings object and the extensions array, each None if the kind of file
+            does not have it. A missing section that is not added is returned empty.
+
+        Raises:
+            UnexpectedTypeError: If the file is not an object, or a section or one of
+                its parents has another type.
         """
         if not isinstance(self.data, dict):
             raise UnexpectedTypeError(
@@ -150,10 +192,18 @@ class VsCodeFile:
     def _get_section(
         self, key_path: tuple[str, ...], section_type: type, create: bool
     ) -> Any:
-        """Return the section at the key path, checking its type and the types of its parents.
+        """Return the section at the key path, checking its type and parent types.
 
-        A missing section and its missing parents are added if 'create' is set, and returned empty
-        otherwise.
+        Args:
+            key_path: Keys leading to the section.
+            section_type: Expected type of the section. Its parents must be objects.
+            create: Whether to add a missing section and its missing parents.
+
+        Returns:
+            The section. A missing section that is not added is returned empty.
+
+        Raises:
+            UnexpectedTypeError: If the section or one of its parents has another type.
         """
         section: Any = self.data
 
@@ -180,8 +230,19 @@ class VsCodeFile:
         return section
 
     def _format(self, text: str) -> str:
-        """Format the text with the packaged dprint, so it matches format on save."""
-        # The bare file name keeps the includes and excludes of dprint.jsonc from skipping the file.
+        """Format the text with the packaged dprint, so it matches format on save.
+
+        Args:
+            text: JSON text of the file.
+
+        Returns:
+            The formatted text.
+
+        Raises:
+            Error: If dprint cannot be run or fails.
+        """
+        # The bare file name keeps the includes and excludes
+        # of dprint.jsonc from skipping the file.
         command = [
             str(constants.DPRINT_BINARY),
             "fmt",
@@ -208,19 +269,35 @@ class VsCodeFile:
         return result.stdout
 
     @staticmethod
-    def _find_missing_extensions(extensions: list[Any], vscode_setup: VsCodeSetup) -> list[str]:
+    def _find_missing_extensions(
+        extensions: list[Any], vscode_setup: VsCodeSetup
+    ) -> list[str]:
         present = {
             extension.lower() for extension in extensions if isinstance(extension, str)
         }
         return [
-            extension for extension in vscode_setup.extensions if extension.lower() not in present
+            extension
+            for extension in vscode_setup.extensions
+            if extension.lower() not in present
         ]
 
     @staticmethod
     def _find_setting_differences(
         settings: dict[str, Any], reference: dict[str, Any], key_path: tuple[str, ...]
     ) -> list[str]:
-        """List the settings that are missing or have another value, comparing objects key by key."""
+        """List the settings that are missing or differ in value.
+
+        Objects are compared key by key.
+
+        Args:
+            settings: Settings of the file.
+            reference: Settings to compare with.
+            key_path: Key path of the settings in the file, which the keys in the
+                differences start with.
+
+        Returns:
+            The differences, each reading 'key: difference'.
+        """
         differences = []
 
         for key, value in reference.items():
@@ -230,7 +307,9 @@ class VsCodeFile:
                 differences.append(f"{jsonc.format_key_path(value_path)}: missing")
             elif isinstance(settings[key], dict) and isinstance(value, dict):
                 differences.extend(
-                    VsCodeFile._find_setting_differences(settings[key], value, value_path)
+                    VsCodeFile._find_setting_differences(
+                        settings[key], value, value_path
+                    )
                 )
             elif not jsonc.are_equal(settings[key], value):
                 differences.append(
@@ -242,7 +321,14 @@ class VsCodeFile:
 
     @staticmethod
     def _merge_settings(settings: dict[str, Any], reference: dict[str, Any]) -> None:
-        """Merge the reference into the settings: objects key by key, other values as a whole."""
+        """Merge the reference into the settings.
+
+        Objects are merged key by key, other values are replaced as a whole.
+
+        Args:
+            settings: Settings to merge into, changed in place.
+            reference: Settings to merge.
+        """
         for key, value in reference.items():
             if isinstance(settings.get(key), dict) and isinstance(value, dict):
                 VsCodeFile._merge_settings(settings[key], value)

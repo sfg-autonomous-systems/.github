@@ -17,8 +17,9 @@ if TYPE_CHECKING:
 class VsCodeSetup:
     """The settings and extensions that VS Code files get.
 
-    'sections' holds the name and the settings of each language, for the '// <name> Settings'
-    comments of a created settings.json. 'settings' holds the settings of all of them combined.
+    'sections' holds the name and the settings of each language, for the
+    '// <name> Settings' comments of a created settings.json. 'settings' holds the
+    settings of all of them combined.
     """
 
     sections: list[tuple[str, dict[str, Any]]]
@@ -27,9 +28,20 @@ class VsCodeSetup:
 
     @classmethod
     def combine(cls, language_setups: Iterable[LanguageSetup]) -> VsCodeSetup:
-        """Combine the VS Code setups, failing on a setting that languages give different values.
+        """Combine the VS Code setups, failing on settings with conflicting values.
 
-        Extension IDs are case-insensitive, so an extension of several languages is added once.
+        Extension IDs are case-insensitive, so an extension of several languages is
+        added once.
+
+        Args:
+            language_setups: Setups whose VS Code setups to combine. Setups without one
+                are skipped.
+
+        Returns:
+            The combined VS Code setup.
+
+        Raises:
+            Error: If two languages give a setting different values.
         """
         sections: list[tuple[str, dict[str, Any]]] = []
         extensions: dict[str, str] = {}
@@ -46,18 +58,25 @@ class VsCodeSetup:
                 extensions.setdefault(extension.lower(), extension)
 
             cls._add_settings(
-                settings, language_setup.vscode.settings, (), language_setup.key, origins
+                settings,
+                language_setup.vscode.settings,
+                (),
+                language_setup.key,
+                origins,
             )
 
         return cls(sections, list(extensions.values()), settings)
 
     def settings_to_string(self) -> str:
-        """Serialize a created settings.json with a comment above the settings of each language.
+        """Serialize a new settings.json with a comment above each language's settings.
 
         Settings that languages give different values, which are merged objects such as
-        'files.exclude', go under the settings of the first language, which is the general one. A
-        setting that several languages repeat with the same value, such as 'dprint.path', goes
-        under the first of them.
+        'files.exclude', go under the settings of the first language, which is the
+        general one. A setting that several languages repeat with the same value, such
+        as 'dprint.path', goes under the first of them.
+
+        Returns:
+            The text of the file, ending with a line break.
         """
         values: dict[str, list[Any]] = {}
 
@@ -102,7 +121,19 @@ class VsCodeSetup:
         language: str,
         origins: dict[tuple[str, ...], str],
     ) -> None:
-        """Add the settings of one language, failing on a value another language sets differently."""
+        """Add the settings of one language, failing on a conflicting value.
+
+        Args:
+            target: Combined settings to add to, changed in place.
+            source: Settings of the language.
+            key_path: Key path of the source and the target within the settings.
+            language: Key of the language setup, used in error messages.
+            origins: Key of the language that added each value, by key path. Updated
+                with the added values.
+
+        Raises:
+            Error: If the language gives a value that another language set differently.
+        """
         for key, value in source.items():
             value_path = (*key_path, key)
 
@@ -110,9 +141,12 @@ class VsCodeSetup:
                 target[key] = copy.deepcopy(value)
                 origins[value_path] = language
             elif isinstance(target[key], dict) and isinstance(value, dict):
-                VsCodeSetup._add_settings(target[key], value, value_path, language, origins)
+                VsCodeSetup._add_settings(
+                    target[key], value, value_path, language, origins
+                )
             elif not jsonc.are_equal(target[key], value):
-                # The value came from the language that added it or one of its parent objects.
+                # The value came from the language that added it or one of its parent
+                # objects.
                 origin = next(
                     origins[value_path[:length]]
                     for length in range(len(value_path), 0, -1)

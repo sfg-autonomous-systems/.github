@@ -14,14 +14,21 @@ if TYPE_CHECKING:
 
 
 class ConfigurationFiles:
-    """The names of configuration files in /opt/sfg-contribution-tooling/share/config/."""
+    """Names of configuration files in /opt/sfg-contribution-tooling/share/config/."""
 
     def __init__(self, names: Iterable[str]) -> None:
         self.names = list(dict.fromkeys(names))
 
     @classmethod
     def combine(cls, language_setups: Iterable[LanguageSetup]) -> ConfigurationFiles:
-        """Combine the configuration files of the setups, each name once."""
+        """Combine the configuration files of the language setups, each name once.
+
+        Args:
+            language_setups: Setups whose configuration files to combine.
+
+        Returns:
+            The configuration files, in the order of the setups.
+        """
         return cls(
             name
             for language_setup in language_setups
@@ -29,10 +36,17 @@ class ConfigurationFiles:
         )
 
     def install(self, directory: Path) -> None:
-        """Copy the missing files into the directory and warn about the existing ones that differ.
+        """Copy the missing files into the directory and warn about differing ones.
 
-        Repositories may adjust their configuration files, so differences are only warnings. Every
-        file is read before any is written, so a failure leaves the directory unchanged.
+        Repositories may adjust their configuration files, so differences are only
+        warnings. Every file is read before any is written, so a file that cannot be
+        read leaves the directory unchanged.
+
+        Args:
+            directory: Repository root to copy the files into.
+
+        Raises:
+            Error: If a file cannot be read or written.
         """
         missing: dict[Path, bytes] = {}
 

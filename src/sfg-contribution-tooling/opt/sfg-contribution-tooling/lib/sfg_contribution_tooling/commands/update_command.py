@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class UpdateCommand(Command):
-    """Merges the settings and extensions into existing VS Code files, or only checks them."""
+    """Merges the settings and extensions into VS Code files, or only checks them."""
 
     name = "update"
     help = "merge the settings and extensions into existing VS Code files"
@@ -44,7 +44,7 @@ class UpdateCommand(Command):
         )
         self._add_languages_argument(
             parser,
-            self._language_setups.list_selectable_keys(),
+            self._language_setups.get_selectable_keys(),
             "languages whose settings and extensions are merged",
         )
         parser.add_argument(
@@ -68,7 +68,8 @@ class UpdateCommand(Command):
         changed_files: list[VsCodeFile] = []
         has_differences = False
 
-        # Loads and merges every file before writing any, so a failure leaves all unchanged.
+        # Loads and merges every file before writing any, so a failure leaves all
+        # unchanged.
         for filepath in filepaths:
             file = VsCodeFile.load(filepath)
             differences = file.find_differences(vscode)
@@ -91,7 +92,8 @@ class UpdateCommand(Command):
         for file in changed_files:
             file.write()
 
-        # The Dev Containers extension installs the extensions of a devcontainer.json itself.
+        # The Dev Containers extension installs the extensions of a devcontainer.json
+        # itself.
         if any(file.kind is FileKind.Extensions for file in changed_files):
             ExtensionInstaller(vscode).offer()
 

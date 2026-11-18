@@ -30,20 +30,34 @@ class LanguageSetups:
 
     @classmethod
     def read(cls, filepath: Path) -> LanguageSetups:
-        """Read the data file and check that its setups can be combined."""
+        """Read the data file and check that its language setups can be combined.
+
+        Args:
+            filepath: Data file to read.
+
+        Returns:
+            The language setups, the general setup first.
+
+        Raises:
+            Error: If the file cannot be read or parsed, has no general setup, or its
+                language setups are invalid or cannot be combined.
+        """
         text = files.read_text(filepath)
 
         try:
-            data, _ = jsonc.parse(text)
+            raw_setups, _ = jsonc.parse(text)
         except Error as error:
             raise Error(f"{os.path.relpath(filepath)}: {error}") from None
 
-        if not isinstance(data, dict) or cls._GENERAL_KEY not in data:
-            raise Error(f"{filepath}: expected an object with a '{cls._GENERAL_KEY}' entry")
+        if not isinstance(raw_setups, dict) or cls._GENERAL_KEY not in raw_setups:
+            raise Error(
+                f"{filepath}: expected an object with a '{cls._GENERAL_KEY}' entry"
+            )
 
         try:
             setups = [
-                LanguageSetup.from_raw(key, raw_setup) for key, raw_setup in data.items()
+                LanguageSetup.from_raw(key, raw_setup)
+                for key, raw_setup in raw_setups.items()
             ]
         except Error as error:
             raise Error(f"{filepath}: {error}") from None
@@ -51,17 +65,29 @@ class LanguageSetups:
         # The general setup comes first wherever it is in the data file.
         setups.sort(key=lambda setup: setup.key != cls._GENERAL_KEY)
 
-        # Combines all setups once, so a conflict fails regardless of which languages are chosen.
+        # Combines all language setups once, so a conflict fails regardless of which
+        # languages are chosen.
         VsCodeSetup.combine(setups)
 
         return cls(setups)
 
-    def list_selectable_keys(self) -> list[str]:
-        """Return the keys of the setups the --languages option can choose."""
+    def get_selectable_keys(self) -> list[str]:
+        """Return the keys of the language setups the --languages option can choose.
+
+        Returns:
+            The keys of all language setups except the general one, in their order.
+        """
         return [setup.key for setup in self._setups[1:]]
 
     def select(self, chosen: list[str] | None) -> LanguageSetups:
-        """Return the general setup and the chosen setups, or all setups if none are chosen."""
+        """Return the general setup and the chosen language setups.
+
+        Args:
+            chosen: Keys of the chosen language setups, or None to choose all.
+
+        Returns:
+            The selected language setups, in their order.
+        """
         return LanguageSetups(
             [
                 setup

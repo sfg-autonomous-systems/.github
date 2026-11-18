@@ -6,4 +6,4 @@ class Error(Exception):
 
 
 class UnexpectedTypeError(Error):
-    """A section or one of its parents has the wrong JSON type, such as '"customizations": []'."""
+    """A section or one of its parents has the wrong JSON type."""

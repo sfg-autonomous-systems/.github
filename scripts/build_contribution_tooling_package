@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the sfg-contribution-tooling Debian package from the tools pinned in its tools file."""
+"""Build the sfg-contribution-tooling Debian package from its pinned tools."""
 
 from __future__ import annotations
 
@@ -50,7 +50,12 @@ class DprintPlugin:
 
 
 def read_pins() -> tuple[list[Pin], list[DprintPlugin]]:
-    """Read the pins of the packaged tools and dprint plugins, in the order of the tools file."""
+    """Read the pins of the packaged tools and dprint plugins.
+
+    Returns:
+        The pins of the tools and those of the dprint plugins, each in the order of
+        the tools file.
+    """
     with TOOLS_FILE.open("rb") as file:
         tools = tomllib.load(file)
 
@@ -63,7 +68,14 @@ def read_pins() -> tuple[list[Pin], list[DprintPlugin]]:
 
 
 def build_wheels(pins: list[Pin], wheel_directory: Path) -> None:
-    """Fetch the wheels for the current architecture, building only allowed source distributions."""
+    """Fetch the wheels of the tools for the current architecture.
+
+    Only tools whose pin allows it are built from source distributions.
+
+    Args:
+        pins: Pins of the tools.
+        wheel_directory: Directory to write the wheels to.
+    """
     binary_only = [pin.name for pin in pins if not pin.source_build]
 
     subprocess.run(
@@ -84,7 +96,13 @@ def build_wheels(pins: list[Pin], wheel_directory: Path) -> None:
 
 
 def extract_wheel(pin: Pin, wheel_directory: Path, staging_directory: Path) -> None:
-    """Install the binary and the license files of one wheel into the staging directory."""
+    """Install the binary and the license files of a wheel into the staging directory.
+
+    Args:
+        pin: Pin of the tool, whose binary pattern selects the file in the wheel.
+        wheel_directory: Directory holding the wheel.
+        staging_directory: Root of the package being built.
+    """
     normalized_name = pin.name.replace("-", "_")
     (wheel,) = wheel_directory.glob(f"{normalized_name}-{pin.version}-*.whl")
 
@@ -105,7 +123,14 @@ def extract_wheel(pin: Pin, wheel_directory: Path, staging_directory: Path) -> N
 
 
 def download_plugin(plugin: DprintPlugin, staging_directory: Path) -> None:
-    """Install one dprint plugin into the staging directory after verifying its checksum."""
+    """Install a dprint plugin into the staging directory after verifying its checksum.
+
+    Exits with an error if the checksum differs from the pinned one.
+
+    Args:
+        plugin: Pin of the plugin.
+        staging_directory: Root of the package being built.
+    """
     url = plugin.url.format(version=plugin.version)
 
     # The plugin server rejects the default User-Agent of urllib.
@@ -134,7 +159,14 @@ def write_control(
     architecture: str,
     staging_directory: Path,
 ) -> None:
-    """Add the architecture and the tool versions to the static control file."""
+    """Add the architecture and the tool versions to the static control file.
+
+    Args:
+        pins: Pins of the tools.
+        plugins: Pins of the dprint plugins.
+        architecture: Debian architecture of the package.
+        staging_directory: Root of the package being built.
+    """
     control_file = staging_directory / "DEBIAN" / "control"
     lines = control_file.read_text().splitlines()
     tools = ", ".join(f"{pin.name} {pin.version}" for pin in pins)
@@ -149,7 +181,14 @@ def write_control(
 
 
 def write_version(staging_directory: Path) -> None:
-    """Replace the placeholder version of the command line interface with the package version."""
+    """Replace the placeholder version of the CLI with the package version.
+
+    Takes the version from the control file. Exits with an error if the control file
+    has no version or the placeholder is missing.
+
+    Args:
+        staging_directory: Root of the package being built.
+    """
     control = (staging_directory / "DEBIAN" / "control").read_text()
     match = re.search(r"^Version: (\S+)$", control, re.MULTILINE)
 
@@ -168,9 +207,14 @@ def write_version(staging_directory: Path) -> None:
 
 
 def normalize_permissions(staging_directory: Path) -> None:
-    """Make the package independent of the umask of the build machine."""
+    """Make the package independent of the umask of the build machine.
+
+    Args:
+        staging_directory: Root of the package being built.
+    """
     for path in [staging_directory, *staging_directory.rglob("*")]:
-        # is_dir() and chmod() follow symlinks, which would change their targets on this machine.
+        # is_dir() and chmod() follow symlinks, which would change their targets on
+        # this machine.
         if path.is_symlink():
             continue
 
@@ -225,7 +269,8 @@ def main() -> None:
         normalize_permissions(staging_directory)
 
         args.output_directory.mkdir(parents=True, exist_ok=True)
-        # Given a directory, dpkg-deb names the package <package>_<version>_<architecture>.deb.
+        # Given a directory, dpkg-deb names the package
+        # <package>_<version>_<architecture>.deb.
         # Set the compression explicitly, as the default differs between dpkg versions.
         subprocess.run(
             [
