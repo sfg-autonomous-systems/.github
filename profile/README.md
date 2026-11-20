@@ -18,7 +18,7 @@ Student projects, experimental code, and early-stage research. Sandbox repositor
 
 Please thoroughly review our [Contributing Guidelines](../CONTRIBUTING.md) to understand our development workflows, git submodule policies, and required VS Code tooling before contributing.
 
-*Note for Lab Members: If you're new to the lab, start with our [onboarding guide](https://github.com/sfg-autonomous-systems/sfg_docs/blob/main/docs/organization/onboarding.md). The full internal infrastructure documentation is hosted [here](https://github.com/sfg-autonomous-systems/sfg_docs).*
+*Note for Lab Members: If you're new to the lab, start with [Onboarding](https://github.com/sfg-autonomous-systems/sfg_docs/blob/main/docs/organization/onboarding.md). The full internal infrastructure documentation is hosted [here](https://github.com/sfg-autonomous-systems/sfg_docs).*
 
 ## Publications
 
